@@ -1,0 +1,209 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/events": {
+            "get": {
+                "description": "Get event by keyword",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Get event by keyword",
+                "operationId": "get-event-by-keyword",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Keyword",
+                        "name": "keyword",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Location",
+                        "name": "location",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Size",
+                        "name": "size",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.Event"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "entity.City": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.Country": {
+            "type": "object",
+            "properties": {
+                "countryCode": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.DateStart": {
+            "type": "object",
+            "properties": {
+                "dateApproximate": {
+                    "type": "boolean"
+                },
+                "dateTBD": {
+                    "type": "boolean"
+                },
+                "dateTime": {
+                    "type": "string"
+                },
+                "localDate": {
+                    "type": "string"
+                },
+                "localTime": {
+                    "type": "string"
+                },
+                "noSpecificTime": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "entity.Dates": {
+            "type": "object",
+            "properties": {
+                "start": {
+                    "$ref": "#/definitions/entity.DateStart"
+                }
+            }
+        },
+        "entity.Embedded": {
+            "type": "object",
+            "properties": {
+                "venues": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Venue"
+                    }
+                }
+            }
+        },
+        "entity.Event": {
+            "type": "object",
+            "properties": {
+                "_embedded": {
+                    "$ref": "#/definitions/entity.Embedded"
+                },
+                "dates": {
+                    "$ref": "#/definitions/entity.Dates"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "locale": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "priceRanges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.PriceRange"
+                    }
+                },
+                "sales": {
+                    "$ref": "#/definitions/entity.Sales"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.PriceRange": {
+            "type": "object",
+            "properties": {
+                "currency": {
+                    "type": "string"
+                },
+                "max": {
+                    "type": "number"
+                },
+                "min": {
+                    "type": "number"
+                }
+            }
+        },
+        "entity.Sales": {
+            "type": "object",
+            "properties": {
+                "public": {
+                    "$ref": "#/definitions/entity.SalesPeriod"
+                }
+            }
+        },
+        "entity.SalesPeriod": {
+            "type": "object",
+            "properties": {
+                "endDateTime": {
+                    "type": "string"
+                },
+                "startDateTime": {
+                    "type": "string"
+                },
+                "startTBA": {
+                    "type": "boolean"
+                },
+                "startTBD": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "entity.Venue": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "$ref": "#/definitions/entity.City"
+                },
+                "country": {
+                    "$ref": "#/definitions/entity.Country"
+                },
+                "locale": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "postalCode": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

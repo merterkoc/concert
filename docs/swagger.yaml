@@ -1,0 +1,134 @@
+definitions:
+  entity.City:
+    properties:
+      name:
+        type: string
+    type: object
+  entity.Country:
+    properties:
+      countryCode:
+        type: string
+      name:
+        type: string
+    type: object
+  entity.DateStart:
+    properties:
+      dateApproximate:
+        type: boolean
+      dateTBD:
+        type: boolean
+      dateTime:
+        type: string
+      localDate:
+        type: string
+      localTime:
+        type: string
+      noSpecificTime:
+        type: boolean
+    type: object
+  entity.Dates:
+    properties:
+      start:
+        $ref: '#/definitions/entity.DateStart'
+    type: object
+  entity.Embedded:
+    properties:
+      venues:
+        items:
+          $ref: '#/definitions/entity.Venue'
+        type: array
+    type: object
+  entity.Event:
+    properties:
+      _embedded:
+        $ref: '#/definitions/entity.Embedded'
+      dates:
+        $ref: '#/definitions/entity.Dates'
+      id:
+        type: string
+      locale:
+        type: string
+      name:
+        type: string
+      priceRanges:
+        items:
+          $ref: '#/definitions/entity.PriceRange'
+        type: array
+      sales:
+        $ref: '#/definitions/entity.Sales'
+      type:
+        type: string
+    type: object
+  entity.PriceRange:
+    properties:
+      currency:
+        type: string
+      max:
+        type: number
+      min:
+        type: number
+    type: object
+  entity.Sales:
+    properties:
+      public:
+        $ref: '#/definitions/entity.SalesPeriod'
+    type: object
+  entity.SalesPeriod:
+    properties:
+      endDateTime:
+        type: string
+      startDateTime:
+        type: string
+      startTBA:
+        type: boolean
+      startTBD:
+        type: boolean
+    type: object
+  entity.Venue:
+    properties:
+      city:
+        $ref: '#/definitions/entity.City'
+      country:
+        $ref: '#/definitions/entity.Country'
+      locale:
+        type: string
+      name:
+        type: string
+      postalCode:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /events:
+    get:
+      description: Get event by keyword
+      operationId: get-event-by-keyword
+      parameters:
+      - description: Keyword
+        in: query
+        name: keyword
+        type: string
+      - description: Location
+        in: query
+        name: location
+        type: string
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Size
+        in: query
+        name: size
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.Event'
+      summary: Get event by keyword
+      tags:
+      - events
+swagger: "2.0"
