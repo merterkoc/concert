@@ -61,14 +61,108 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/events/{id}": {
+            "get": {
+                "description": "Get event by id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Get event by id",
+                "operationId": "get-event-by-id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.EventDetail"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "entity.Attraction": {
+            "type": "object",
+            "properties": {
+                "_links": {
+                    "$ref": "#/definitions/entity.Links"
+                },
+                "classifications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Classification"
+                    }
+                },
+                "externalLinks": {
+                    "$ref": "#/definitions/entity.ExternalLinks"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Image"
+                    }
+                },
+                "test": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "upcomingEvents": {
+                    "$ref": "#/definitions/entity.UpcomingEvents"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.City": {
             "type": "object",
             "properties": {
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "entity.Classification": {
+            "type": "object",
+            "properties": {
+                "family": {
+                    "type": "boolean"
+                },
+                "genre": {
+                    "$ref": "#/definitions/entity.Genre"
+                },
+                "primary": {
+                    "type": "boolean"
+                },
+                "segment": {
+                    "$ref": "#/definitions/entity.Segment"
+                },
+                "subGenre": {
+                    "$ref": "#/definitions/entity.SubGenre"
+                },
+                "subType": {
+                    "$ref": "#/definitions/entity.SubType"
+                },
+                "type": {
+                    "$ref": "#/definitions/entity.Type"
                 }
             }
         },
@@ -83,40 +177,32 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.DateStart": {
-            "type": "object",
-            "properties": {
-                "dateApproximate": {
-                    "type": "boolean"
-                },
-                "dateTBD": {
-                    "type": "boolean"
-                },
-                "dateTime": {
-                    "type": "string"
-                },
-                "localDate": {
-                    "type": "string"
-                },
-                "localTime": {
-                    "type": "string"
-                },
-                "noSpecificTime": {
-                    "type": "boolean"
-                }
-            }
-        },
         "entity.Dates": {
             "type": "object",
             "properties": {
+                "spanMultipleDays": {
+                    "type": "boolean"
+                },
                 "start": {
-                    "$ref": "#/definitions/entity.DateStart"
+                    "$ref": "#/definitions/entity.StartDate"
+                },
+                "status": {
+                    "$ref": "#/definitions/entity.Status"
+                },
+                "timezone": {
+                    "type": "string"
                 }
             }
         },
         "entity.Embedded": {
             "type": "object",
             "properties": {
+                "attractions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Attraction"
+                    }
+                },
                 "venues": {
                     "type": "array",
                     "items": {
@@ -157,6 +243,138 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.EventDetail": {
+            "type": "object",
+            "properties": {
+                "_embedded": {
+                    "$ref": "#/definitions/entity.Embedded"
+                },
+                "_links": {
+                    "$ref": "#/definitions/entity.Links"
+                },
+                "classifications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Classification"
+                    }
+                },
+                "dates": {
+                    "$ref": "#/definitions/entity.Dates"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Image"
+                    }
+                },
+                "locale": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "sales": {
+                    "$ref": "#/definitions/entity.Sales"
+                },
+                "test": {
+                    "type": "boolean"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.ExternalLinks": {
+            "type": "object",
+            "properties": {
+                "facebook": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Link"
+                    }
+                },
+                "homepage": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Link"
+                    }
+                },
+                "musicbrainz": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Link"
+                    }
+                },
+                "wiki": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Link"
+                    }
+                }
+            }
+        },
+        "entity.Genre": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.Image": {
+            "type": "object",
+            "properties": {
+                "fallback": {
+                    "type": "boolean"
+                },
+                "height": {
+                    "type": "integer"
+                },
+                "ratio": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
+                },
+                "width": {
+                    "type": "integer"
+                }
+            }
+        },
+        "entity.Link": {
+            "type": "object",
+            "properties": {
+                "href": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.Links": {
+            "type": "object",
+            "properties": {
+                "attractions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Link"
+                    }
+                },
+                "self": {
+                    "$ref": "#/definitions/entity.Link"
+                },
+                "venues": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Link"
+                    }
+                }
+            }
+        },
         "entity.PriceRange": {
             "type": "object",
             "properties": {
@@ -171,15 +389,7 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.Sales": {
-            "type": "object",
-            "properties": {
-                "public": {
-                    "$ref": "#/definitions/entity.SalesPeriod"
-                }
-            }
-        },
-        "entity.SalesPeriod": {
+        "entity.PublicSale": {
             "type": "object",
             "properties": {
                 "endDateTime": {
@@ -193,6 +403,88 @@ const docTemplate = `{
                 },
                 "startTBD": {
                     "type": "boolean"
+                }
+            }
+        },
+        "entity.Sales": {
+            "type": "object",
+            "properties": {
+                "public": {
+                    "$ref": "#/definitions/entity.PublicSale"
+                }
+            }
+        },
+        "entity.Segment": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.StartDate": {
+            "type": "object",
+            "properties": {
+                "dateTBA": {
+                    "type": "boolean"
+                },
+                "dateTBD": {
+                    "type": "boolean"
+                },
+                "dateTime": {
+                    "type": "string"
+                },
+                "localDate": {
+                    "type": "string"
+                },
+                "localTime": {
+                    "type": "string"
+                },
+                "noSpecificTime": {
+                    "type": "boolean"
+                },
+                "timeTBA": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "entity.Status": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.SubGenre": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.SubType": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.Type": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.UpcomingEvents": {
+            "type": "object",
+            "properties": {
+                "wts-tr": {
+                    "type": "integer"
                 }
             }
         },

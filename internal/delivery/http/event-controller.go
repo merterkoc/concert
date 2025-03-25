@@ -2,15 +2,31 @@ package controller
 
 import (
 	entity "gilab.com/pragmaticreviews/golang-gin-poc/internal/event/domain"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/event/dto"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/service"
 )
 
 type EventController interface {
-	FindByKeywordOrLocation(keyword string, location string, page int, size int) (entity.Event, error)
+	FindById(id string) (entity.EventDetail, error)
+	FindByKeywordOrLocation(GetEventRequest dto.GetEventRequest) ([]entity.Event, error)
 }
 
 type controller struct {
 	service service.EventService
+}
+
+// FindById is a controller method
+// that returns an event by id
+// @Summary Get event by id
+// @Description Get event by id
+// @ID get-event-by-id
+// @Produce json
+// @Param id path string true "Id"
+// @Success 200 {object} entity.EventDetail
+// @Router /events/{id} [get]
+// @Tags events
+func (c controller) FindById(id string) (entity.EventDetail, error) {
+	return c.service.FindById(id)
 }
 
 // FindByKeywordOrLocation is a controller method
@@ -26,8 +42,13 @@ type controller struct {
 // @Success 200 {object} entity.Event
 // @Router /events [get]
 // @Tags events
-func (c controller) FindByKeywordOrLocation(keyword string, location string, page int, size int) (entity.Event, error) {
-	return c.service.FindByKeywordOrLocation(keyword, location, page, size)
+func (c controller) FindByKeywordOrLocation(GetEventRequest dto.GetEventRequest) ([]entity.Event, error) {
+	return c.service.FindByKeywordOrLocation(
+		GetEventRequest.Keyword,
+		GetEventRequest.Location,
+		GetEventRequest.Page,
+		GetEventRequest.Size,
+	)
 }
 
 func New(ss service.EventService) EventController {

@@ -1,8 +1,50 @@
 definitions:
+  entity.Attraction:
+    properties:
+      _links:
+        $ref: '#/definitions/entity.Links'
+      classifications:
+        items:
+          $ref: '#/definitions/entity.Classification'
+        type: array
+      externalLinks:
+        $ref: '#/definitions/entity.ExternalLinks'
+      id:
+        type: string
+      images:
+        items:
+          $ref: '#/definitions/entity.Image'
+        type: array
+      test:
+        type: boolean
+      type:
+        type: string
+      upcomingEvents:
+        $ref: '#/definitions/entity.UpcomingEvents'
+      url:
+        type: string
+    type: object
   entity.City:
     properties:
       name:
         type: string
+    type: object
+  entity.Classification:
+    properties:
+      family:
+        type: boolean
+      genre:
+        $ref: '#/definitions/entity.Genre'
+      primary:
+        type: boolean
+      segment:
+        $ref: '#/definitions/entity.Segment'
+      subGenre:
+        $ref: '#/definitions/entity.SubGenre'
+      subType:
+        $ref: '#/definitions/entity.SubType'
+      type:
+        $ref: '#/definitions/entity.Type'
     type: object
   entity.Country:
     properties:
@@ -11,28 +53,23 @@ definitions:
       name:
         type: string
     type: object
-  entity.DateStart:
-    properties:
-      dateApproximate:
-        type: boolean
-      dateTBD:
-        type: boolean
-      dateTime:
-        type: string
-      localDate:
-        type: string
-      localTime:
-        type: string
-      noSpecificTime:
-        type: boolean
-    type: object
   entity.Dates:
     properties:
+      spanMultipleDays:
+        type: boolean
       start:
-        $ref: '#/definitions/entity.DateStart'
+        $ref: '#/definitions/entity.StartDate'
+      status:
+        $ref: '#/definitions/entity.Status'
+      timezone:
+        type: string
     type: object
   entity.Embedded:
     properties:
+      attractions:
+        items:
+          $ref: '#/definitions/entity.Attraction'
+        type: array
       venues:
         items:
           $ref: '#/definitions/entity.Venue'
@@ -59,6 +96,92 @@ definitions:
       type:
         type: string
     type: object
+  entity.EventDetail:
+    properties:
+      _embedded:
+        $ref: '#/definitions/entity.Embedded'
+      _links:
+        $ref: '#/definitions/entity.Links'
+      classifications:
+        items:
+          $ref: '#/definitions/entity.Classification'
+        type: array
+      dates:
+        $ref: '#/definitions/entity.Dates'
+      id:
+        type: string
+      images:
+        items:
+          $ref: '#/definitions/entity.Image'
+        type: array
+      locale:
+        type: string
+      name:
+        type: string
+      sales:
+        $ref: '#/definitions/entity.Sales'
+      test:
+        type: boolean
+      type:
+        type: string
+      url:
+        type: string
+    type: object
+  entity.ExternalLinks:
+    properties:
+      facebook:
+        items:
+          $ref: '#/definitions/entity.Link'
+        type: array
+      homepage:
+        items:
+          $ref: '#/definitions/entity.Link'
+        type: array
+      musicbrainz:
+        items:
+          $ref: '#/definitions/entity.Link'
+        type: array
+      wiki:
+        items:
+          $ref: '#/definitions/entity.Link'
+        type: array
+    type: object
+  entity.Genre:
+    properties:
+      id:
+        type: string
+    type: object
+  entity.Image:
+    properties:
+      fallback:
+        type: boolean
+      height:
+        type: integer
+      ratio:
+        type: string
+      url:
+        type: string
+      width:
+        type: integer
+    type: object
+  entity.Link:
+    properties:
+      href:
+        type: string
+    type: object
+  entity.Links:
+    properties:
+      attractions:
+        items:
+          $ref: '#/definitions/entity.Link'
+        type: array
+      self:
+        $ref: '#/definitions/entity.Link'
+      venues:
+        items:
+          $ref: '#/definitions/entity.Link'
+        type: array
+    type: object
   entity.PriceRange:
     properties:
       currency:
@@ -68,12 +191,7 @@ definitions:
       min:
         type: number
     type: object
-  entity.Sales:
-    properties:
-      public:
-        $ref: '#/definitions/entity.SalesPeriod'
-    type: object
-  entity.SalesPeriod:
+  entity.PublicSale:
     properties:
       endDateTime:
         type: string
@@ -83,6 +201,58 @@ definitions:
         type: boolean
       startTBD:
         type: boolean
+    type: object
+  entity.Sales:
+    properties:
+      public:
+        $ref: '#/definitions/entity.PublicSale'
+    type: object
+  entity.Segment:
+    properties:
+      id:
+        type: string
+    type: object
+  entity.StartDate:
+    properties:
+      dateTBA:
+        type: boolean
+      dateTBD:
+        type: boolean
+      dateTime:
+        type: string
+      localDate:
+        type: string
+      localTime:
+        type: string
+      noSpecificTime:
+        type: boolean
+      timeTBA:
+        type: boolean
+    type: object
+  entity.Status:
+    properties:
+      code:
+        type: string
+    type: object
+  entity.SubGenre:
+    properties:
+      id:
+        type: string
+    type: object
+  entity.SubType:
+    properties:
+      id:
+        type: string
+    type: object
+  entity.Type:
+    properties:
+      id:
+        type: string
+    type: object
+  entity.UpcomingEvents:
+    properties:
+      wts-tr:
+        type: integer
     type: object
   entity.Venue:
     properties:
@@ -129,6 +299,26 @@ paths:
           schema:
             $ref: '#/definitions/entity.Event'
       summary: Get event by keyword
+      tags:
+      - events
+  /events/{id}:
+    get:
+      description: Get event by id
+      operationId: get-event-by-id
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.EventDetail'
+      summary: Get event by id
       tags:
       - events
 swagger: "2.0"

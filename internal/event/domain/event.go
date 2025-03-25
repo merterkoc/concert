@@ -19,19 +19,11 @@ type Event struct {
 	Embedded    Embedded     `json:"_embedded"`
 }
 
-type Sales struct {
-	Public SalesPeriod `json:"public"`
-}
-
 type SalesPeriod struct {
 	StartDateTime string `json:"startDateTime"`
 	EndDateTime   string `json:"endDateTime"`
 	StartTBD      bool   `json:"startTBD"`
 	StartTBA      bool   `json:"startTBA"`
-}
-
-type Dates struct {
-	Start DateStart `json:"start"`
 }
 
 type DateStart struct {
@@ -49,23 +41,10 @@ type PriceRange struct {
 	Currency string  `json:"currency"`
 }
 
-type Embedded struct {
-	Venues []Venue `json:"venues"`
-}
-
 type Venue struct {
 	Name       string  `json:"name"`
 	Locale     string  `json:"locale"`
 	PostalCode string  `json:"postalCode"`
 	City       City    `json:"city"`
 	Country    Country `json:"country"`
-}
-
-type City struct {
-	Name string `json:"name"`
-}
-
-type Country struct {
-	Name string `json:"name"`
-	Code string `json:"countryCode"`
 }
