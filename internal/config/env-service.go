@@ -1,10 +1,12 @@
 package internal
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"sync"
 
+	"gilab.com/pragmaticreviews/golang-gin-poc/config"
 	"github.com/joho/godotenv"
 )
 
@@ -31,7 +33,11 @@ func GetEnvServiceInstance() *EnvService {
 }
 
 func loadEnv() *Environment {
-	err := godotenv.Load()
+
+	env := config.GetConfig()
+
+	fmt.Println("Selected environment: %e", env)
+	err := godotenv.Load(".env." + env)
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
