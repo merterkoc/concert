@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"time"
 
 	_ "gilab.com/pragmaticreviews/golang-gin-poc/docs"
@@ -9,8 +10,10 @@ import (
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/service"
 	"github.com/gin-contrib/cors"
 
+	//boot "gilab.com/pragmaticreviews/golang-gin-poc/boot"
 	envService "gilab.com/pragmaticreviews/golang-gin-poc/internal/config"
 	"github.com/gin-gonic/gin"
+	_ "github.com/go-sql-driver/mysql"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -25,6 +28,8 @@ var (
 func main() {
 	// Start the server
 	server := gin.Default()
+
+	DbStart()
 
 	// CORS Middleware
 	server.Use(cors.New(cors.Config{
@@ -67,4 +72,13 @@ func main() {
 	if err != nil {
 		return
 	}
+}
+
+func DbStart() {
+	db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/gigbuddy?parseTime=true")
+
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
 }
