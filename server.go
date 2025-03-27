@@ -1,10 +1,13 @@
 package main
 
 import (
+	"time"
+
 	_ "gilab.com/pragmaticreviews/golang-gin-poc/docs"
 	controller "gilab.com/pragmaticreviews/golang-gin-poc/internal/delivery/http"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/event/dto"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/service"
+	"github.com/gin-contrib/cors"
 
 	envService "gilab.com/pragmaticreviews/golang-gin-poc/internal/config"
 	"github.com/gin-gonic/gin"
@@ -22,6 +25,16 @@ var (
 func main() {
 	// Start the server
 	server := gin.Default()
+
+	// CORS Middleware
+	server.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"}, // Tüm kaynaklara izin ver (güvenlik için kısıtlayabilirsiniz)
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	server.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	server.GET("/events/:id", func(c *gin.Context) {
