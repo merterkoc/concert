@@ -1,7 +1,10 @@
 package userservice
 
-import entity "gilab.com/pragmaticreviews/golang-gin-poc/internal/event/domain"
+import (
+	entity "gilab.com/pragmaticreviews/golang-gin-poc/internal/user/domain"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/user/dto"
+)
 
-type EventService interface {
-	CreateUser(username string) (entity.User, error)
+type UserService interface {
+	CreateUser(postNewUserRequest dto.PostNewUserRequest) (*entity.User, error)
 }

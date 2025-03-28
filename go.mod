@@ -11,8 +11,11 @@ require (
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect
+	github.com/dranikpg/dto-mapper v0.2.1 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
+	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/peteprogrammer/go-automapper v0.0.0-20200419053654-7c63d5bb0eb4 // indirect
 )
 
 require (
@@ -55,5 +58,6 @@ require (
 	golang.org/x/tools v0.31.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
+	gorm.io/driver/mysql v1.5.7
 	gorm.io/gorm v1.25.12
 )

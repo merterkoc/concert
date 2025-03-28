@@ -1,17 +1,26 @@
 package main
 
 import (
-	"database/sql"
+	"fmt"
+
 	"time"
 
 	_ "gilab.com/pragmaticreviews/golang-gin-poc/docs"
-	controller "gilab.com/pragmaticreviews/golang-gin-poc/internal/delivery/http"
-	"gilab.com/pragmaticreviews/golang-gin-poc/internal/event/dto"
-	"gilab.com/pragmaticreviews/golang-gin-poc/internal/service"
-	"github.com/gin-contrib/cors"
+	externalController "gilab.com/pragmaticreviews/golang-gin-poc/external/controller"
+	internalController "gilab.com/pragmaticreviews/golang-gin-poc/internal/controller"
 
-	//boot "gilab.com/pragmaticreviews/golang-gin-poc/boot"
+	externalEventService "gilab.com/pragmaticreviews/golang-gin-poc/external/event-service"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/repository"
+	eventservice "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/event-service"
+	userservice "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/user-service"
+	"github.com/gin-contrib/cors"
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+
+	boot "gilab.com/pragmaticreviews/golang-gin-poc/boot"
+	eventDTO "gilab.com/pragmaticreviews/golang-gin-poc/external/event/dto"
 	envService "gilab.com/pragmaticreviews/golang-gin-poc/internal/config"
+	userDTO "gilab.com/pragmaticreviews/golang-gin-poc/internal/user/dto"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	swaggerFiles "github.com/swaggo/files"
@@ -19,17 +28,24 @@ import (
 )
 
 var (
-	eventService service.EventService = service.NewEventService(
+	db                      = boot.DbStart()
+	newExternalEventService = externalEventService.NewEventService(
 		envService.GetEnvServiceInstance(),
 	)
-	eventController controller.EventController = controller.New(eventService)
+	newUserService = userservice.NewUserService(
+		repository.NewUserRepository(db),
+	)
+	newEventService = eventservice.NewEventService(
+		repository.NewEventRepository(db),
+	)
+	newExternalEventController externalController.EventController = externalController.NewEventController(newExternalEventService)
+	userController             internalController.UserController  = internalController.NewUserController(newUserService)
+	eventController            internalController.EventController = internalController.NewEventController(newEventService)
 )
 
 func main() {
 	// Start the server
 	server := gin.Default()
-
-	DbStart()
 
 	// CORS Middleware
 	server.Use(cors.New(cors.Config{
@@ -44,7 +60,7 @@ func main() {
 	server.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	server.GET("/events/:id", func(c *gin.Context) {
 		id := c.Param("id")
-		event, err := eventController.FindById(id)
+		event, err := newExternalEventController.FindById(id)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -52,14 +68,14 @@ func main() {
 		c.JSON(200, event)
 	})
 	server.GET("/events", func(c *gin.Context) {
-		var req dto.GetEventRequest
+		var req eventDTO.GetEventRequest
 
 		if err := c.ShouldBindQuery(&req); err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 
-		events, err := eventController.FindByKeywordOrLocation(req)
+		events, err := newExternalEventController.FindByKeywordOrLocation(req)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -67,18 +83,79 @@ func main() {
 
 		c.JSON(200, events)
 	})
+	server.POST("/users", func(c *gin.Context) {
+		var req userDTO.PostNewUserRequest
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		user, err := userController.CreateUser(req)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(200, user)
+	})
+	server.POST("/events/:id/:eventId/join", func(c *gin.Context) {
+		id := c.Param("id")
+		eventID := c.Param("eventId")
+		uid, err := uuid.Parse(id)
+		if err != nil {
+			fmt.Println("Geçersiz UUID:", err)
+			return
+		}
+
+		eventController.JoinEvent(uid, eventID)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(200, gin.H{"message": "joined"})
+	})
+	server.POST("/events/:id/:eventId/leave", func(c *gin.Context) {
+		id := c.Param("id")
+		eventID := c.Param("eventId")
+		uid, err := uuid.Parse(id)
+		if err != nil {
+			fmt.Println("Geçersiz UUID:", err)
+			return
+		}
+
+		leaveErr := eventController.LeaveEvent(uid, eventID)
+		if leaveErr != nil {
+			if leaveErr == gorm.ErrRecordNotFound {
+				c.JSON(404, gin.H{"error": leaveErr.Error()})
+				return
+			}
+			c.JSON(500, gin.H{"error": leaveErr.Error()})
+			return
+		}
+
+		c.JSON(200, gin.H{"message": "left"})
+	})
+	server.GET("/events/:id/user", func(c *gin.Context) {
+		id := c.Param("id")
+		uid, err := uuid.Parse(id)
+		if err != nil {
+			fmt.Println("Invalid UUID:", err)
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		event, err := eventController.GetEventByUser(uid)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(200, event)
+	})
 	env := envService.GetEnvServiceInstance()
 	err := server.Run(":" + env.Env.AppPort)
 	if err != nil {
 		return
 	}
-}
-
-func DbStart() {
-	db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/gigbuddy?parseTime=true")
-
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
 }

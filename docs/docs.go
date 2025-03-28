@@ -22,7 +22,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "events"
+                    "ticketmaster-event"
                 ],
                 "summary": "Get event by keyword",
                 "operationId": "get-event-by-keyword",
@@ -69,7 +69,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "events"
+                    "ticketmaster-event"
                 ],
                 "summary": "Get event by id",
                 "operationId": "get-event-by-id",
@@ -91,9 +91,167 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/events/{id}/user": {
+            "get": {
+                "description": "Get event by user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Get event by user",
+                "operationId": "get-event-by-user",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.EventDetail"
+                        }
+                    }
+                }
+            }
+        },
+        "/events/{id}/{eventId}/join": {
+            "post": {
+                "description": "Join event",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Join event",
+                "operationId": "join-event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.EventDetail"
+                        }
+                    }
+                }
+            }
+        },
+        "/events/{id}/{eventId}/leave": {
+            "post": {
+                "description": "Leave event",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Leave event",
+                "operationId": "leave-event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Id",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.EventDetail"
+                        }
+                    }
+                }
+            }
+        },
+        "/users": {
+            "post": {
+                "description": "Create user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "users"
+                ],
+                "summary": "Create user",
+                "parameters": [
+                    {
+                        "description": "User",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PostNewUserRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.User"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "dto.PostNewUserRequest": {
+            "type": "object",
+            "required": [
+                "email",
+                "password",
+                "username"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string",
+                    "minLength": 6
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.Attraction": {
             "type": "object",
             "properties": {
@@ -485,6 +643,23 @@ const docTemplate = `{
             "properties": {
                 "wts-tr": {
                     "type": "integer"
+                }
+            }
+        },
+        "entity.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },

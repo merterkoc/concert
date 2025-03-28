@@ -1,4 +1,18 @@
 definitions:
+  dto.PostNewUserRequest:
+    properties:
+      email:
+        type: string
+      password:
+        minLength: 6
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
   entity.Attraction:
     properties:
       _links:
@@ -254,6 +268,17 @@ definitions:
       wts-tr:
         type: integer
     type: object
+  entity.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      username:
+        type: string
+    type: object
   entity.Venue:
     properties:
       city:
@@ -300,7 +325,7 @@ paths:
             $ref: '#/definitions/entity.Event'
       summary: Get event by keyword
       tags:
-      - events
+      - ticketmaster-event
   /events/{id}:
     get:
       description: Get event by id
@@ -320,5 +345,97 @@ paths:
             $ref: '#/definitions/entity.EventDetail'
       summary: Get event by id
       tags:
+      - ticketmaster-event
+  /events/{id}/{eventId}/join:
+    post:
+      description: Join event
+      operationId: join-event
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.EventDetail'
+      summary: Join event
+      tags:
       - events
+  /events/{id}/{eventId}/leave:
+    post:
+      description: Leave event
+      operationId: leave-event
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.EventDetail'
+      summary: Leave event
+      tags:
+      - events
+  /events/{id}/user:
+    get:
+      description: Get event by user
+      operationId: get-event-by-user
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.EventDetail'
+      summary: Get event by user
+      tags:
+      - events
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: Create user
+      parameters:
+      - description: User
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PostNewUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.User'
+      summary: Create user
+      tags:
+      - users
 swagger: "2.0"

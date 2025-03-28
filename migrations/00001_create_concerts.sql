@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE concerts (
+CREATE TABLE events (
     id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
     title VARCHAR(255) NOT NULL,
     artist VARCHAR(255) NOT NULL,
@@ -15,5 +15,5 @@ CREATE TABLE concerts (
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS concerts;
+DROP TABLE IF EXISTS events;
 -- +goose StatementEnd
