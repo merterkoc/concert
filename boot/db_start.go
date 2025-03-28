@@ -1,6 +1,7 @@
 package boot
 
 import (
+	envService "gilab.com/pragmaticreviews/golang-gin-poc/internal/config"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -10,7 +11,8 @@ import (
 )
 
 func DbStart() *gorm.DB {
-	dsn := "root:root@tcp(localhost:3306)/gigbuddy?parseTime=true"
+	env := envService.GetEnvServiceInstance()
+	dsn := env.Env.DBString
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)

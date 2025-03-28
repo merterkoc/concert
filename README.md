@@ -1,6 +1,16 @@
 ## Development
 ### Migrations
 
+### Go Install
+
+Download from [go lang](https://go.dev/doc/install).
+
+After save global path
+```bash
+echo 'export GOROOT=/usr/local/go' >> ~/.zshrc
+echo 'export PATH=$GOROOT/bin:$PATH' >> ~/.zshrc
+source ~/.zshrc
+```
 
 ### Setup
 
@@ -26,6 +36,7 @@ goose -s -dir migrations create <your_migration_name> sql
 Run migrations:
 ```bash
 goose -s -dir migrations up
+
 ```
 
 Check migrations:

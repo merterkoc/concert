@@ -12,6 +12,7 @@ import (
 
 type Environment struct {
 	TicketMasterAPIToken string
+	DBString             string
 	AppPort              string
 }
 
@@ -36,7 +37,7 @@ func loadEnv() *Environment {
 
 	env := config.GetConfig()
 
-	fmt.Println("Selected environment: %e", env)
+	fmt.Printf("Selected environment: %e\n", env)
 	err := godotenv.Load(".env." + env)
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -45,5 +46,6 @@ func loadEnv() *Environment {
 	return &Environment{
 		TicketMasterAPIToken: os.Getenv("TICKET_MASTER_API_TOKEN"),
 		AppPort:              os.Getenv("APP_PORT"),
+		DBString:             os.Getenv("DB_STRING"),
 	}
 }
