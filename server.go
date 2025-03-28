@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
 	"time"
@@ -17,7 +18,7 @@ import (
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
-	boot "gilab.com/pragmaticreviews/golang-gin-poc/boot"
+	"gilab.com/pragmaticreviews/golang-gin-poc/boot"
 	eventDTO "gilab.com/pragmaticreviews/golang-gin-poc/external/event/dto"
 	envService "gilab.com/pragmaticreviews/golang-gin-poc/internal/config"
 	userDTO "gilab.com/pragmaticreviews/golang-gin-poc/internal/user/dto"
@@ -38,9 +39,9 @@ var (
 	newEventService = eventservice.NewEventService(
 		repository.NewEventRepository(db),
 	)
-	newExternalEventController externalController.EventController = externalController.NewEventController(newExternalEventService)
-	userController             internalController.UserController  = internalController.NewUserController(newUserService)
-	eventController            internalController.EventController = internalController.NewEventController(newEventService)
+	NewExternalEventController = externalController.NewEventController(newExternalEventService)
+	userController             = internalController.NewUserController(newUserService)
+	eventController            = internalController.NewEventController(newEventService)
 )
 
 func main() {
@@ -49,7 +50,7 @@ func main() {
 
 	// CORS Middleware
 	server.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"*"}, // Tüm kaynaklara izin ver (güvenlik için kısıtlayabilirsiniz)
+		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
@@ -60,7 +61,7 @@ func main() {
 	server.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	server.GET("/events/:id", func(c *gin.Context) {
 		id := c.Param("id")
-		event, err := newExternalEventController.FindById(id)
+		event, err := NewExternalEventController.FindById(id)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -75,7 +76,7 @@ func main() {
 			return
 		}
 
-		events, err := newExternalEventController.FindByKeywordOrLocation(req)
+		events, err := NewExternalEventController.FindByKeywordOrLocation(req)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -104,11 +105,14 @@ func main() {
 		eventID := c.Param("eventId")
 		uid, err := uuid.Parse(id)
 		if err != nil {
-			fmt.Println("Geçersiz UUID:", err)
+			fmt.Println("Unexpected UUID:", err)
 			return
 		}
 
-		eventController.JoinEvent(uid, eventID)
+		err = eventController.JoinEvent(uid, eventID)
+		if err != nil {
+			return
+		}
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -121,13 +125,13 @@ func main() {
 		eventID := c.Param("eventId")
 		uid, err := uuid.Parse(id)
 		if err != nil {
-			fmt.Println("Geçersiz UUID:", err)
+			fmt.Println("Unexpected UUID:", err)
 			return
 		}
 
 		leaveErr := eventController.LeaveEvent(uid, eventID)
 		if leaveErr != nil {
-			if leaveErr == gorm.ErrRecordNotFound {
+			if errors.Is(leaveErr, gorm.ErrRecordNotFound) {
 				c.JSON(404, gin.H{"error": leaveErr.Error()})
 				return
 			}
