@@ -24,7 +24,7 @@ First step set environment variables:
 
 ```bash
 export GOOSE_DRIVER=mysql
-export GOOSE_DBSTRING="root:root@tcp(localhost:3306)/gigbuddy?parseTime=true"
+export GOOSE_DBSTRING="root:1234@tcp(localhost:3306)/gigbuddy?parseTime=true"
 export GOOSE_MIGRATIONS_DIR=migrations
 
 Create a new migration:

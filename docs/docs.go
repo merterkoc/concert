@@ -196,7 +196,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users": {
+        "/identity/create": {
             "post": {
                 "description": "Create user",
                 "consumes": [
@@ -206,48 +206,110 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "users"
+                    "identity"
                 ],
                 "summary": "Create user",
                 "parameters": [
                     {
-                        "description": "User",
-                        "name": "user",
+                        "description": "CreateUserRequest",
+                        "name": "createUserRequest",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/dto.PostNewUserRequest"
+                            "$ref": "#/definitions/dto.CreateUserRequest"
                         }
+                    }
+                ],
+                "responses": {}
+            }
+        },
+        "/identity/userinfo": {
+            "post": {
+                "description": "Get user info",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identity"
+                ],
+                "summary": "Get user info",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "IdToken",
+                        "name": "idToken",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/entity.User"
+                            "type": "string"
                         }
                     }
                 }
             }
+        },
+        "/identity/verify": {
+            "post": {
+                "description": "Verify token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identity"
+                ],
+                "summary": "Verify token",
+                "parameters": [
+                    {
+                        "description": "VerifyTokenRequest",
+                        "name": "verifyTokenRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.VerifyTokenRequest"
+                        }
+                    }
+                ],
+                "responses": {}
+            }
         }
     },
     "definitions": {
-        "dto.PostNewUserRequest": {
+        "dto.CreateUserRequest": {
             "type": "object",
             "required": [
                 "email",
-                "password",
-                "username"
+                "name",
+                "password"
             ],
             "properties": {
                 "email": {
                     "type": "string"
                 },
-                "password": {
-                    "type": "string",
-                    "minLength": 6
+                "name": {
+                    "type": "string"
                 },
-                "username": {
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.VerifyTokenRequest": {
+            "type": "object",
+            "required": [
+                "idToken"
+            ],
+            "properties": {
+                "idToken": {
                     "type": "string"
                 }
             }
@@ -643,23 +705,6 @@ const docTemplate = `{
             "properties": {
                 "wts-tr": {
                     "type": "integer"
-                }
-            }
-        },
-        "entity.User": {
-            "type": "object",
-            "properties": {
-                "created_at": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
                 }
             }
         },

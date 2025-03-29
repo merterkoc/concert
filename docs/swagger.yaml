@@ -1,17 +1,23 @@
 definitions:
-  dto.PostNewUserRequest:
+  dto.CreateUserRequest:
     properties:
       email:
         type: string
-      password:
-        minLength: 6
+      name:
         type: string
-      username:
+      password:
         type: string
     required:
     - email
+    - name
     - password
-    - username
+    type: object
+  dto.VerifyTokenRequest:
+    properties:
+      idToken:
+        type: string
+    required:
+    - idToken
     type: object
   entity.Attraction:
     properties:
@@ -268,17 +274,6 @@ definitions:
       wts-tr:
         type: integer
     type: object
-  entity.User:
-    properties:
-      created_at:
-        type: string
-      email:
-        type: string
-      id:
-        type: string
-      username:
-        type: string
-    type: object
   entity.Venue:
     properties:
       city:
@@ -416,26 +411,61 @@ paths:
       summary: Get event by user
       tags:
       - events
-  /users:
+  /identity/create:
     post:
       consumes:
       - application/json
       description: Create user
       parameters:
-      - description: User
+      - description: CreateUserRequest
         in: body
-        name: user
+        name: createUserRequest
         required: true
         schema:
-          $ref: '#/definitions/dto.PostNewUserRequest'
+          $ref: '#/definitions/dto.CreateUserRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create user
+      tags:
+      - identity
+  /identity/userinfo:
+    post:
+      consumes:
+      - application/json
+      description: Get user info
+      parameters:
+      - description: IdToken
+        in: path
+        name: idToken
+        required: true
+        type: string
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/entity.User'
-      summary: Create user
+            type: string
+      summary: Get user info
       tags:
-      - users
+      - identity
+  /identity/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify token
+      parameters:
+      - description: VerifyTokenRequest
+        in: body
+        name: verifyTokenRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VerifyTokenRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Verify token
+      tags:
+      - identity
 swagger: "2.0"

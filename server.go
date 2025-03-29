@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/dto"
+	identityservice "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/identity-service"
 
 	"time"
 
@@ -13,7 +15,6 @@ import (
 	externalEventService "gilab.com/pragmaticreviews/golang-gin-poc/external/event-service"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/repository"
 	eventservice "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/event-service"
-	userservice "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/user-service"
 	"github.com/gin-contrib/cors"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -21,7 +22,6 @@ import (
 	"gilab.com/pragmaticreviews/golang-gin-poc/boot"
 	eventDTO "gilab.com/pragmaticreviews/golang-gin-poc/external/event/dto"
 	envService "gilab.com/pragmaticreviews/golang-gin-poc/internal/config"
-	userDTO "gilab.com/pragmaticreviews/golang-gin-poc/internal/user/dto"
 	"github.com/gin-gonic/gin"
 	_ "github.com/go-sql-driver/mysql"
 	swaggerFiles "github.com/swaggo/files"
@@ -30,17 +30,16 @@ import (
 
 var (
 	db                      = boot.DbStart()
+	firebase                = boot.FirebaseStart()
+	identityService         = identityservice.NewIdentityService(repository.NewIdentityRepository(db, firebase))
 	newExternalEventService = externalEventService.NewEventService(
 		envService.GetEnvServiceInstance(),
-	)
-	newUserService = userservice.NewUserService(
-		repository.NewUserRepository(db),
 	)
 	newEventService = eventservice.NewEventService(
 		repository.NewEventRepository(db),
 	)
+	NewIdentityController      = internalController.NewIdentityController(identityService)
 	NewExternalEventController = externalController.NewEventController(newExternalEventService)
-	userController             = internalController.NewUserController(newUserService)
 	eventController            = internalController.NewEventController(newEventService)
 )
 
@@ -68,6 +67,38 @@ func main() {
 		}
 		c.JSON(200, event)
 	})
+	server.POST("/identity/verify", func(c *gin.Context) {
+		var req dto.VerifyTokenRequest
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		token, err := NewIdentityController.VerifyToken(c, req)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(200, token)
+	})
+	server.POST("/identity/create", func(c *gin.Context) {
+		var req dto.CreateUserRequest
+
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		user, err := NewIdentityController.CreateUser(c, req)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.JSON(200, user)
+	})
 	server.GET("/events", func(c *gin.Context) {
 		var req eventDTO.GetEventRequest
 
@@ -83,22 +114,6 @@ func main() {
 		}
 
 		c.JSON(200, events)
-	})
-	server.POST("/users", func(c *gin.Context) {
-		var req userDTO.PostNewUserRequest
-
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
-			return
-		}
-
-		user, err := userController.CreateUser(req)
-		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.JSON(200, user)
 	})
 	server.POST("/events/:id/:eventId/join", func(c *gin.Context) {
 		id := c.Param("id")

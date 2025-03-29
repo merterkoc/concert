@@ -1,11 +1,14 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE user_events (
-    id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
-    user_id CHAR(36) NOT NULL,
-    event_id VARCHAR(255) NOT NULL,
-    status ENUM('interested', 'going') NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE user_events
+(
+    id         CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+    user_id    CHAR(36)     NOT NULL,
+    event_id   VARCHAR(255) NOT NULL,
+    status     ENUM('interested', 'going') NOT NULL,
+    created_at TIMESTAMP            DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP            DEFAULT CURRENT_TIMESTAMP
+
 );
 -- +goose StatementEnd
 

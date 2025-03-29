@@ -1,1 +1,4 @@
 .env
+
+firebase-config/dev/serviceAccountKey.json
+firebase-config/prod/serviceAccountKey.json

@@ -2,8 +2,8 @@ package repository
 
 import (
 	"fmt"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity"
 
-	entity "gilab.com/pragmaticreviews/golang-gin-poc/internal/user/domain"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
