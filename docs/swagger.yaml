@@ -1,4 +1,24 @@
 definitions:
+  dto.CreateUserRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  dto.VerifyTokenRequest:
+    properties:
+      idToken:
+        type: string
+    required:
+    - idToken
+    type: object
   entity.Attraction:
     properties:
       _links:
@@ -300,7 +320,7 @@ paths:
             $ref: '#/definitions/entity.Event'
       summary: Get event by keyword
       tags:
-      - events
+      - ticketmaster-event
   /events/{id}:
     get:
       description: Get event by id
@@ -320,5 +340,132 @@ paths:
             $ref: '#/definitions/entity.EventDetail'
       summary: Get event by id
       tags:
+      - ticketmaster-event
+  /events/{id}/{eventId}/join:
+    post:
+      description: Join event
+      operationId: join-event
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.EventDetail'
+      summary: Join event
+      tags:
       - events
+  /events/{id}/{eventId}/leave:
+    post:
+      description: Leave event
+      operationId: leave-event
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.EventDetail'
+      summary: Leave event
+      tags:
+      - events
+  /events/{id}/user:
+    get:
+      description: Get event by user
+      operationId: get-event-by-user
+      parameters:
+      - description: Id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.EventDetail'
+      summary: Get event by user
+      tags:
+      - events
+  /identity/create:
+    post:
+      consumes:
+      - application/json
+      description: Create user
+      parameters:
+      - description: CreateUserRequest
+        in: body
+        name: createUserRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateUserRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Create user
+      tags:
+      - identity
+  /identity/userinfo:
+    post:
+      consumes:
+      - application/json
+      description: Get user info
+      parameters:
+      - description: IdToken
+        in: path
+        name: idToken
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            type: string
+      summary: Get user info
+      tags:
+      - identity
+  /identity/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify token
+      parameters:
+      - description: VerifyTokenRequest
+        in: body
+        name: verifyTokenRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VerifyTokenRequest'
+      produces:
+      - application/json
+      responses: {}
+      summary: Verify token
+      tags:
+      - identity
 swagger: "2.0"
