@@ -1,4 +1,5 @@
-.env
+.env.dev
+.env.prod
 
 firebase-config/dev/serviceAccountKey.json
 firebase-config/prod/serviceAccountKey.json
