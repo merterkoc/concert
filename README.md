@@ -52,3 +52,6 @@ When you change the code you need to run the following command to update the doc
 ```bash
 swag init -g server.go
 ```
+
+### Firebase
+Please contact admin for firebase config files.
