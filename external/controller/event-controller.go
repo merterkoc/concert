@@ -42,6 +42,8 @@ func (c eventController) FindById(id string) (entity.EventDetail, error) {
 // @Success 200 {object} entity.Event
 // @Router /events [get]
 // @Tags ticketmaster-event
+// @Security AccessToken
+// @Security AccessToken[admin]
 func (c eventController) FindByKeywordOrLocation(GetEventRequest dto.GetEventRequest) ([]entity.Event, error) {
 	return c.eventService.FindByKeywordOrLocation(
 		GetEventRequest.Keyword,

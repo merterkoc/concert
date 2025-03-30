@@ -1,16 +1,17 @@
+basePath: /v1
 definitions:
   dto.CreateUserRequest:
     properties:
       email:
         type: string
-      name:
-        type: string
       password:
+        type: string
+      username:
         type: string
     required:
     - email
-    - name
     - password
+    - username
     type: object
   dto.VerifyTokenRequest:
     properties:
@@ -287,8 +288,12 @@ definitions:
       postalCode:
         type: string
     type: object
+host: localhost:8080
 info:
   contact: {}
+  description: GigBuddy API Documentation
+  title: GigBuddy API
+  version: 1.0.0
 paths:
   /events:
     get:
@@ -318,6 +323,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/entity.Event'
+      security:
+      - AccessToken: []
+      - AccessToken:
+        - admin
       summary: Get event by keyword
       tags:
       - ticketmaster-event
@@ -363,6 +372,8 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/entity.EventDetail'
+      security:
+      - BearerAuth: []
       summary: Join event
       tags:
       - events
@@ -468,4 +479,12 @@ paths:
       summary: Verify token
       tags:
       - identity
+securityDefinitions:
+  AccessToken:
+    in: header
+    name: Authorization
+    scopes:
+      admin: Grants read and write access to administrative information
+      user: Grants write access
+    type: apiKey
 swagger: "2.0"

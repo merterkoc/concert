@@ -26,6 +26,8 @@ type eventController struct {
 // @Success 200 {object} entity.EventDetail
 // @Router /events/{id}/{eventId}/join [post]
 // @Tags events
+// @Security BearerAuth
+// @PreAuthorize Admin
 func (c eventController) JoinEvent(ID uuid.UUID, eventID string) error {
 	return c.eventService.JoinEvent(ID, eventID)
 }

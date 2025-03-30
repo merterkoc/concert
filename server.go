@@ -2,9 +2,15 @@ package main
 
 import (
 	"errors"
+	"firebase.google.com/go/auth"
 	"fmt"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/dto"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity/enum"
 	identityservice "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/identity-service"
+	"golang.org/x/net/context"
+	"log"
+	"net/http"
+	"strings"
 
 	"time"
 
@@ -43,6 +49,18 @@ var (
 	eventController            = internalController.NewEventController(newEventService)
 )
 
+// @title GigBuddy API
+// @version 1.0.0
+// @description GigBuddy API Documentation
+// @host localhost:8080
+// @BasePath /v1
+
+// @securityDefinitions.apikey AccessToken
+// @in header
+// @name Authorization
+// @tokenUrl https://example.com/oauth/token
+// @scope.user Grants write access
+// @scope.admin Grants read and write access to administrative information
 func main() {
 	// Start the server
 	server := gin.Default()
@@ -57,8 +75,14 @@ func main() {
 		MaxAge:           12 * time.Hour,
 	}))
 
-	server.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	server.GET("/events/:id", func(c *gin.Context) {
+	authClient, err := firebase.Auth(context.Background())
+	if err != nil {
+		log.Fatalf("Firebase auth client oluşturulamadı: %v", err)
+	}
+
+	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler,
+		ginSwagger.PersistAuthorization(false)))
+	server.GET("/v1/events/:id", func(c *gin.Context) {
 		id := c.Param("id")
 		event, err := NewExternalEventController.FindById(id)
 		if err != nil {
@@ -67,7 +91,7 @@ func main() {
 		}
 		c.JSON(200, event)
 	})
-	server.POST("/identity/verify", func(c *gin.Context) {
+	server.POST("/v1/identity/verify", func(c *gin.Context) {
 		var req dto.VerifyTokenRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -75,15 +99,9 @@ func main() {
 			return
 		}
 
-		token, err := NewIdentityController.VerifyToken(c, req)
-		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.JSON(200, token)
+		NewIdentityController.VerifyToken(c, req)
 	})
-	server.POST("/identity/create", func(c *gin.Context) {
+	server.POST("/v1/identity/create", func(c *gin.Context) {
 		var req dto.CreateUserRequest
 
 		if err := c.ShouldBindJSON(&req); err != nil {
@@ -99,7 +117,7 @@ func main() {
 
 		c.JSON(200, user)
 	})
-	server.GET("/events", func(c *gin.Context) {
+	server.GET("/v1/events", tokenMiddleware(authClient, []enum.Role{enum.Admin}), func(c *gin.Context) {
 		var req eventDTO.GetEventRequest
 
 		if err := c.ShouldBindQuery(&req); err != nil {
@@ -115,16 +133,23 @@ func main() {
 
 		c.JSON(200, events)
 	})
-	server.POST("/events/:id/:eventId/join", func(c *gin.Context) {
-		id := c.Param("id")
+	server.POST("/v1/events/:id/:eventId/join", func(c *gin.Context) {
+		uid, exists := c.Get("uid")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "UID not found"})
+			return
+		}
+
+		parsedUID, err := uuid.Parse(uid.(string))
+
 		eventID := c.Param("eventId")
-		uid, err := uuid.Parse(id)
+
 		if err != nil {
 			fmt.Println("Unexpected UUID:", err)
 			return
 		}
 
-		err = eventController.JoinEvent(uid, eventID)
+		err = eventController.JoinEvent(parsedUID, eventID)
 		if err != nil {
 			return
 		}
@@ -135,7 +160,7 @@ func main() {
 
 		c.JSON(200, gin.H{"message": "joined"})
 	})
-	server.POST("/events/:id/:eventId/leave", func(c *gin.Context) {
+	server.POST("/v1/events/:id/:eventId/leave", func(c *gin.Context) {
 		id := c.Param("id")
 		eventID := c.Param("eventId")
 		uid, err := uuid.Parse(id)
@@ -156,7 +181,7 @@ func main() {
 
 		c.JSON(200, gin.H{"message": "left"})
 	})
-	server.GET("/events/:id/user", func(c *gin.Context) {
+	server.GET("/v1/events/:id/user", func(c *gin.Context) {
 		id := c.Param("id")
 		uid, err := uuid.Parse(id)
 		if err != nil {
@@ -173,8 +198,47 @@ func main() {
 		c.JSON(200, event)
 	})
 	env := envService.GetEnvServiceInstance()
-	err := server.Run(":" + env.Env.AppPort)
+	err = server.Run(":" + env.Env.AppPort)
 	if err != nil {
 		return
 	}
+}
+func tokenMiddleware(firebaseAuth *auth.Client, allowedRoles []enum.Role) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Context'i al
+		ctx := c.Request.Context()
+
+		// Token'ı header'dan al
+		token, err := getTokenFromHeader(c)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: " + err.Error()})
+			c.Abort()
+			return
+		}
+
+		// Token'ı doğrula
+		_, err = identityService.VerifyCustomToken(ctx, firebaseAuth, token, allowedRoles)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: " + err.Error()})
+			c.Abort()
+			return
+		}
+
+		// Sonraki handler'a yönlendir
+		c.Next()
+	}
+}
+
+func getTokenFromHeader(r *gin.Context) (string, error) {
+	authHeader := r.GetHeader("Authorization")
+	if authHeader == "" {
+		return "", fmt.Errorf("Authorization header is missing")
+	}
+
+	parts := strings.Fields(authHeader)
+	if len(parts) != 2 || parts[0] != "Bearer" {
+		return "", fmt.Errorf("invalid Authorization header format")
+	}
+
+	return parts[1], nil
 }

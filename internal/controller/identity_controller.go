@@ -1,17 +1,17 @@
 package controller
 
 import (
-	"firebase.google.com/go/auth"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/dto"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity"
 	identityService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/identity-service"
+	"github.com/gin-gonic/gin"
 	"golang.org/x/net/context"
 )
 
 type IdentityController interface {
 	CreateUser(ctx context.Context, createUserRequest dto.CreateUserRequest) (*entity.User, error)
-	VerifyToken(ctx context.Context, verifyTokenRequest dto.VerifyTokenRequest) (*auth.Token, error)
-	GetUserInfo(ctx context.Context, idToken string) (string, error)
+	VerifyToken(ctx *gin.Context, verifyTokenRequest dto.VerifyTokenRequest)
+	GetUserInfo(idToken string) (entity.User, error)
 }
 
 type identityController struct {
@@ -40,8 +40,8 @@ func (c identityController) CreateUser(ctx context.Context, createUserRequest dt
 // @Produce  json
 // @Param verifyTokenRequest body dto.VerifyTokenRequest true "VerifyTokenRequest"
 // @Router /identity/verify [post]
-func (c identityController) VerifyToken(ctx context.Context, verifyTokenRequest dto.VerifyTokenRequest) (*auth.Token, error) {
-	return c.identityService.VerifyToken(ctx, verifyTokenRequest.IdToken)
+func (c identityController) VerifyToken(ctx *gin.Context, verifyTokenRequest dto.VerifyTokenRequest) {
+	c.identityService.VerifyTokenAndGenerateCustomToken(ctx, verifyTokenRequest.IdToken)
 }
 
 // GetUserInfo is a controller method
@@ -54,8 +54,8 @@ func (c identityController) VerifyToken(ctx context.Context, verifyTokenRequest 
 // @Param idToken path string true "IdToken"
 // @Success 200 {object} string
 // @Router /identity/userinfo [post]
-func (c identityController) GetUserInfo(ctx context.Context, idToken string) (string, error) {
-	return c.identityService.GetUserInfo(ctx, idToken)
+func (c identityController) GetUserInfo(id string) (entity.User, error) {
+	return c.identityService.GetUserInfo(id)
 }
 
 func NewIdentityController(identityService identityService.IdentityService) IdentityController {

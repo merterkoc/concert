@@ -5,6 +5,7 @@ go 1.24.1
 require (
 	firebase.google.com/go v3.13.0+incompatible
 	github.com/gin-gonic/gin v1.10.0
+	github.com/golang-jwt/jwt/v4 v4.5.2
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0

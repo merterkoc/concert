@@ -4,7 +4,10 @@ import (
 	"firebase.google.com/go/auth"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/dto"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity/enum"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/repository"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/net/context"
 )
 
@@ -16,12 +19,16 @@ func (i identityService) CreateUser(ctx context.Context, createUserRequest dto.C
 	return i.identityRepo.CreateUser(ctx, createUserRequest)
 }
 
-func (i identityService) VerifyToken(ctx context.Context, idToken string) (*auth.Token, error) {
-	return i.identityRepo.VerifyToken(ctx, idToken)
+func (i identityService) VerifyTokenAndGenerateCustomToken(ctx *gin.Context, idToken string) {
+	i.identityRepo.VerifyAndGenerateToken(ctx, idToken)
 }
 
-func (i identityService) GetUserInfo(ctx context.Context, idToken string) (string, error) {
-	return i.identityRepo.GetUserInfo(ctx, idToken)
+func (i identityService) GetUserInfo(id string) (entity.User, error) {
+	return i.identityRepo.GetUserInfo(id)
+}
+
+func (i identityService) VerifyCustomToken(ctx context.Context, firebaseAuth *auth.Client, customToken string, allowedRoles []enum.Role) (jwt.MapClaims, error) {
+	return i.identityRepo.VerifyCustomToken(ctx, firebaseAuth, customToken, allowedRoles)
 }
 
 func NewIdentityService(

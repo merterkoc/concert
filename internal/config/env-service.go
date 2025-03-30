@@ -14,6 +14,7 @@ type Environment struct {
 	TicketMasterAPIToken string
 	DBString             string
 	AppPort              string
+	JWTSecret            string
 }
 
 type EnvService struct {
@@ -47,5 +48,6 @@ func loadEnv() *Environment {
 		TicketMasterAPIToken: os.Getenv("TICKET_MASTER_API_TOKEN"),
 		AppPort:              os.Getenv("APP_PORT"),
 		DBString:             os.Getenv("DB_STRING"),
+		JWTSecret:            os.Getenv("JWT_SECRET"),
 	}
 }

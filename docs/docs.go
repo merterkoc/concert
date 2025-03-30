@@ -17,6 +17,16 @@ const docTemplate = `{
     "paths": {
         "/events": {
             "get": {
+                "security": [
+                    {
+                        "AccessToken": []
+                    },
+                    {
+                        "AccessToken": [
+                            "admin"
+                        ]
+                    }
+                ],
                 "description": "Get event by keyword",
                 "produces": [
                     "application/json"
@@ -124,6 +134,11 @@ const docTemplate = `{
         },
         "/events/{id}/{eventId}/join": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Join event",
                 "produces": [
                     "application/json"
@@ -288,17 +303,17 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "email",
-                "name",
-                "password"
+                "password",
+                "username"
             ],
             "properties": {
                 "email": {
                     "type": "string"
                 },
-                "name": {
+                "password": {
                     "type": "string"
                 },
-                "password": {
+                "username": {
                     "type": "string"
                 }
             }
@@ -728,17 +743,28 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "AccessToken": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "scopes": {
+                "admin": "Grants read and write access to administrative information",
+                "user": "Grants write access"
+            }
+        }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "",
-	Host:             "",
-	BasePath:         "",
+	Version:          "1.0.0",
+	Host:             "localhost:8080",
+	BasePath:         "/v1",
 	Schemes:          []string{},
-	Title:            "",
-	Description:      "",
+	Title:            "GigBuddy API",
+	Description:      "GigBuddy API Documentation",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

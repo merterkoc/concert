@@ -1,11 +1,26 @@
 {
     "swagger": "2.0",
     "info": {
-        "contact": {}
+        "description": "GigBuddy API Documentation",
+        "title": "GigBuddy API",
+        "contact": {},
+        "version": "1.0.0"
     },
+    "host": "localhost:8080",
+    "basePath": "/v1",
     "paths": {
         "/events": {
             "get": {
+                "security": [
+                    {
+                        "AccessToken": []
+                    },
+                    {
+                        "AccessToken": [
+                            "admin"
+                        ]
+                    }
+                ],
                 "description": "Get event by keyword",
                 "produces": [
                     "application/json"
@@ -113,6 +128,11 @@
         },
         "/events/{id}/{eventId}/join": {
             "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Join event",
                 "produces": [
                     "application/json"
@@ -277,17 +297,17 @@
             "type": "object",
             "required": [
                 "email",
-                "name",
-                "password"
+                "password",
+                "username"
             ],
             "properties": {
                 "email": {
                     "type": "string"
                 },
-                "name": {
+                "password": {
                     "type": "string"
                 },
-                "password": {
+                "username": {
                     "type": "string"
                 }
             }
@@ -715,6 +735,17 @@
                 "postalCode": {
                     "type": "string"
                 }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "AccessToken": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "scopes": {
+                "admin": "Grants read and write access to administrative information",
+                "user": "Grants write access"
             }
         }
     }
