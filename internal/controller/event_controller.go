@@ -26,8 +26,7 @@ type eventController struct {
 // @Success 200 {object} entity.EventDetail
 // @Router /events/{id}/{eventId}/join [post]
 // @Tags events
-// @Security BearerAuth
-// @PreAuthorize Admin
+// @Security AccessToken[admin, user]
 func (c eventController) JoinEvent(ID uuid.UUID, eventID string) error {
 	return c.eventService.JoinEvent(ID, eventID)
 }
@@ -45,6 +44,7 @@ func (c eventController) JoinEvent(ID uuid.UUID, eventID string) error {
 // @Success 200 {object} entity.EventDetail
 // @Router /events/{id}/{eventId}/leave [post]
 // @Tags events
+// @Security AccessToken[admin, user]
 func (c eventController) LeaveEvent(ID uuid.UUID, eventID string) error {
 	return c.eventService.LeaveEvent(ID, eventID)
 }
@@ -63,6 +63,7 @@ func (c eventController) LeaveEvent(ID uuid.UUID, eventID string) error {
 //	@Router /events/{id}/user [get]
 //
 // @Tags events
+// @Security AccessToken[admin, user]
 func (c eventController) GetEventByUser(ID uuid.UUID) ([]string, error) {
 	return c.eventService.GetEventByUser(ID)
 }

@@ -25,6 +25,7 @@ type eventController struct {
 // @Success 200 {object} entity.EventDetail
 // @Router /events/{id} [get]
 // @Tags ticketmaster-event
+// @Security AccessToken[admin, user]
 func (c eventController) FindById(id string) (entity.EventDetail, error) {
 	return c.eventService.FindById(id)
 }
@@ -42,8 +43,7 @@ func (c eventController) FindById(id string) (entity.EventDetail, error) {
 // @Success 200 {object} entity.Event
 // @Router /events [get]
 // @Tags ticketmaster-event
-// @Security AccessToken
-// @Security AccessToken[admin]
+// @Security AccessToken[admin, user]
 func (c eventController) FindByKeywordOrLocation(GetEventRequest dto.GetEventRequest) ([]entity.Event, error) {
 	return c.eventService.FindByKeywordOrLocation(
 		GetEventRequest.Keyword,

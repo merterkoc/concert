@@ -324,9 +324,9 @@ paths:
           schema:
             $ref: '#/definitions/entity.Event'
       security:
-      - AccessToken: []
       - AccessToken:
         - admin
+        - user
       summary: Get event by keyword
       tags:
       - ticketmaster-event
@@ -347,6 +347,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/entity.EventDetail'
+      security:
+      - AccessToken:
+        - admin
+        - user
       summary: Get event by id
       tags:
       - ticketmaster-event
@@ -373,7 +377,9 @@ paths:
           schema:
             $ref: '#/definitions/entity.EventDetail'
       security:
-      - BearerAuth: []
+      - AccessToken:
+        - admin
+        - user
       summary: Join event
       tags:
       - events
@@ -399,6 +405,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/entity.EventDetail'
+      security:
+      - AccessToken:
+        - admin
+        - user
       summary: Leave event
       tags:
       - events
@@ -419,6 +429,10 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/entity.EventDetail'
+      security:
+      - AccessToken:
+        - admin
+        - user
       summary: Get event by user
       tags:
       - events

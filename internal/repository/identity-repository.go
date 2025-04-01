@@ -12,10 +12,10 @@ import (
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/mapper"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/google/uuid"
 	"golang.org/x/net/context"
 	"gorm.io/gorm"
 	"log"
+	"net/http"
 )
 
 type IdentityRepository struct {
@@ -78,7 +78,13 @@ func (r *IdentityRepository) VerifyAndGenerateToken(ctx *gin.Context, firebaseTo
 		log.Println("Firebase auth client error:", err)
 		return
 	}
-	_, _ = r.VerifyFirebaseToken(ctx, client, firebaseToken)
+	_, err = r.VerifyFirebaseToken(ctx, client, firebaseToken)
+	if err != nil {
+		log.Println("Firebase token verification error:", err)
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: " + err.Error()})
+		return
+
+	}
 
 	//parser
 	token, _, err := new(jwt.Parser).ParseUnverified(firebaseToken, jwt.MapClaims{})
@@ -99,9 +105,14 @@ func (r *IdentityRepository) VerifyAndGenerateToken(ctx *gin.Context, firebaseTo
 	}
 	/// Token'ı imzala ve string'e dönüştür
 
-	userInfo, _ := r.GetUserInfoFromFirebaseToken(userID)
+	userInfo, err := r.GetUserInfoFromFirebaseToken(userID)
+	if err != nil {
+		log.Println("User info error:", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Bad Request: " + err.Error()})
+		return
+	}
 
-	GenerateCustomToken(ctx, client, userInfo.ID)
+	GenerateCustomToken(ctx, client, userInfo)
 
 }
 
@@ -141,11 +152,11 @@ func (r *IdentityRepository) VerifyCustomToken(ctx context.Context, firebaseAuth
 	return claims, nil
 }
 
-func GenerateCustomToken(ctx *gin.Context, firebaseAuth *auth.Client, uid uuid.UUID) {
+func GenerateCustomToken(ctx *gin.Context, firebaseAuth *auth.Client, userInfo entity.User) {
 	//claims := map[string]interface{}{
 	//	"role": "user",
 	//}
-	authorizationHelper.GenerateTokenHandler(ctx, uid.String())
+	authorizationHelper.GenerateTokenHandler(ctx, userInfo.ID, userInfo.Role)
 	//if err != nil {
 	//	log.Println("Failed to create custom token:", err)
 	//	return nil, err

@@ -82,15 +82,6 @@ func main() {
 
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler,
 		ginSwagger.PersistAuthorization(false)))
-	server.GET("/v1/events/:id", func(c *gin.Context) {
-		id := c.Param("id")
-		event, err := NewExternalEventController.FindById(id)
-		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
-		c.JSON(200, event)
-	})
 	server.POST("/v1/identity/verify", func(c *gin.Context) {
 		var req dto.VerifyTokenRequest
 
@@ -117,7 +108,7 @@ func main() {
 
 		c.JSON(200, user)
 	})
-	server.GET("/v1/events", tokenMiddleware(authClient, []enum.Role{enum.Admin}), func(c *gin.Context) {
+	server.GET("/v1/events", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
 		var req eventDTO.GetEventRequest
 
 		if err := c.ShouldBindQuery(&req); err != nil {
@@ -133,7 +124,7 @@ func main() {
 
 		c.JSON(200, events)
 	})
-	server.POST("/v1/events/:id/:eventId/join", func(c *gin.Context) {
+	server.POST("/v1/events/:id/:eventId/join", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
 		uid, exists := c.Get("uid")
 		if !exists {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "UID not found"})
@@ -160,7 +151,7 @@ func main() {
 
 		c.JSON(200, gin.H{"message": "joined"})
 	})
-	server.POST("/v1/events/:id/:eventId/leave", func(c *gin.Context) {
+	server.POST("/v1/events/:id/:eventId/leave", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
 		id := c.Param("id")
 		eventID := c.Param("eventId")
 		uid, err := uuid.Parse(id)
@@ -181,7 +172,7 @@ func main() {
 
 		c.JSON(200, gin.H{"message": "left"})
 	})
-	server.GET("/v1/events/:id/user", func(c *gin.Context) {
+	server.GET("/v1/events/:id/user", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
 		id := c.Param("id")
 		uid, err := uuid.Parse(id)
 		if err != nil {

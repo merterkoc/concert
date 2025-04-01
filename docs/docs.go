@@ -19,11 +19,9 @@ const docTemplate = `{
             "get": {
                 "security": [
                     {
-                        "AccessToken": []
-                    },
-                    {
                         "AccessToken": [
-                            "admin"
+                            "admin",
+                            "user"
                         ]
                     }
                 ],
@@ -74,6 +72,14 @@ const docTemplate = `{
         },
         "/events/{id}": {
             "get": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
                 "description": "Get event by id",
                 "produces": [
                     "application/json"
@@ -104,6 +110,14 @@ const docTemplate = `{
         },
         "/events/{id}/user": {
             "get": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
                 "description": "Get event by user",
                 "produces": [
                     "application/json"
@@ -136,7 +150,10 @@ const docTemplate = `{
             "post": {
                 "security": [
                     {
-                        "BearerAuth": []
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
                     }
                 ],
                 "description": "Join event",
@@ -176,6 +193,14 @@ const docTemplate = `{
         },
         "/events/{id}/{eventId}/leave": {
             "post": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
                 "description": "Leave event",
                 "produces": [
                     "application/json"

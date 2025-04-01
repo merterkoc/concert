@@ -6,36 +6,32 @@ import (
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity/enum"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"net/http"
 	"time"
 )
 
 var mySigningKey = []byte(envService.GetEnvServiceInstance().Env.JWTSecret)
 
-func GenerateToken(userid string) (string, error) {
-	// Kullanıcı ID boş mu?
+func GenerateToken(userid string, role enum.Role) (string, error) {
 	if userid == "" {
 		return "", fmt.Errorf("userid cannot be empty")
 	}
 
-	// Özel talepler (claims)
 	claims := jwt.MapClaims{
-		"exp":      time.Now().Add(time.Hour * 24).Unix(), // Token'ın geçerlilik süresi (24 saat)
+		"exp":      time.Now().Add(time.Hour * 24).Unix(),
 		"userid":   userid,
-		"role":     "user",
+		"role":     role.String(),
 		"username": userid,
 		"iat":      time.Now().Unix(),
 	}
 
-	// Token oluşturma
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-	// İmzalama anahtarını kontrol et
 	if mySigningKey == nil || len(mySigningKey) == 0 {
 		return "", fmt.Errorf("signing key cannot be empty")
 	}
 
-	// Token'ı imzala ve string'e dönüştür
 	tokenString, err := token.SignedString(mySigningKey)
 	if err != nil {
 		return "", err
@@ -44,14 +40,14 @@ func GenerateToken(userid string) (string, error) {
 	return tokenString, nil
 }
 
-func GenerateTokenHandler(c *gin.Context, userid string) {
+func GenerateTokenHandler(c *gin.Context, userid uuid.UUID, role enum.Role) {
 
-	if userid == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID gereklidir"})
+	if userid == uuid.Nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "User ID required"})
 		return
 	}
 
-	tokenString, err := GenerateToken(userid)
+	tokenString, err := GenerateToken(userid.String(), role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token oluşturulamadı"})
 		return
