@@ -70,6 +70,111 @@ const docTemplate = `{
                 }
             }
         },
+        "/events/user": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
+                "description": "Get event by user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Get event by user",
+                "operationId": "get-event-by-user",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.EventDetail"
+                        }
+                    }
+                }
+            }
+        },
+        "/events/{eventId}/join": {
+            "post": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
+                "description": "Join event",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Join event",
+                "operationId": "join-event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.EventDetail"
+                        }
+                    }
+                }
+            }
+        },
+        "/events/{eventId}/leave": {
+            "post": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
+                "description": "Leave event",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Leave event",
+                "operationId": "leave-event",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Event ID",
+                        "name": "eventId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.EventDetail"
+                        }
+                    }
+                }
+            }
+        },
         "/events/{id}": {
             "get": {
                 "security": [
@@ -94,134 +199,6 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Id",
                         "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/entity.EventDetail"
-                        }
-                    }
-                }
-            }
-        },
-        "/events/{id}/user": {
-            "get": {
-                "security": [
-                    {
-                        "AccessToken": [
-                            "admin",
-                            "user"
-                        ]
-                    }
-                ],
-                "description": "Get event by user",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "events"
-                ],
-                "summary": "Get event by user",
-                "operationId": "get-event-by-user",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/entity.EventDetail"
-                        }
-                    }
-                }
-            }
-        },
-        "/events/{id}/{eventId}/join": {
-            "post": {
-                "security": [
-                    {
-                        "AccessToken": [
-                            "admin",
-                            "user"
-                        ]
-                    }
-                ],
-                "description": "Join event",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "events"
-                ],
-                "summary": "Join event",
-                "operationId": "join-event",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Event ID",
-                        "name": "eventId",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/entity.EventDetail"
-                        }
-                    }
-                }
-            }
-        },
-        "/events/{id}/{eventId}/leave": {
-            "post": {
-                "security": [
-                    {
-                        "AccessToken": [
-                            "admin",
-                            "user"
-                        ]
-                    }
-                ],
-                "description": "Leave event",
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "events"
-                ],
-                "summary": "Leave event",
-                "operationId": "leave-event",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Id",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "string",
-                        "description": "Event ID",
-                        "name": "eventId",
                         "in": "path",
                         "required": true
                     }

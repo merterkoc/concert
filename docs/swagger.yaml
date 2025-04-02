@@ -330,6 +330,54 @@ paths:
       summary: Get event by keyword
       tags:
       - ticketmaster-event
+  /events/{eventId}/join:
+    post:
+      description: Join event
+      operationId: join-event
+      parameters:
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.EventDetail'
+      security:
+      - AccessToken:
+        - admin
+        - user
+      summary: Join event
+      tags:
+      - events
+  /events/{eventId}/leave:
+    post:
+      description: Leave event
+      operationId: leave-event
+      parameters:
+      - description: Event ID
+        in: path
+        name: eventId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.EventDetail'
+      security:
+      - AccessToken:
+        - admin
+        - user
+      summary: Leave event
+      tags:
+      - events
   /events/{id}:
     get:
       description: Get event by id
@@ -354,74 +402,10 @@ paths:
       summary: Get event by id
       tags:
       - ticketmaster-event
-  /events/{id}/{eventId}/join:
-    post:
-      description: Join event
-      operationId: join-event
-      parameters:
-      - description: Id
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Event ID
-        in: path
-        name: eventId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/entity.EventDetail'
-      security:
-      - AccessToken:
-        - admin
-        - user
-      summary: Join event
-      tags:
-      - events
-  /events/{id}/{eventId}/leave:
-    post:
-      description: Leave event
-      operationId: leave-event
-      parameters:
-      - description: Id
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Event ID
-        in: path
-        name: eventId
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/entity.EventDetail'
-      security:
-      - AccessToken:
-        - admin
-        - user
-      summary: Leave event
-      tags:
-      - events
-  /events/{id}/user:
+  /events/user:
     get:
       description: Get event by user
       operationId: get-event-by-user
-      parameters:
-      - description: Id
-        in: path
-        name: id
-        required: true
-        type: string
       produces:
       - application/json
       responses:

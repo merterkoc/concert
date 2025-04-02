@@ -21,10 +21,9 @@ type eventController struct {
 // @Description Join event
 // @ID join-event
 // @Produce json
-// @Param id path string true "Id"
 // @Param eventId path string true "Event ID"
 // @Success 200 {object} entity.EventDetail
-// @Router /events/{id}/{eventId}/join [post]
+// @Router /events/{eventId}/join [post]
 // @Tags events
 // @Security AccessToken[admin, user]
 func (c eventController) JoinEvent(ID uuid.UUID, eventID string) error {
@@ -37,12 +36,10 @@ func (c eventController) JoinEvent(ID uuid.UUID, eventID string) error {
 // @Description Leave event
 // @ID leave-event
 // @Produce json
-// @Param id path string true "Id"
-//
 // @Param eventId path string true "Event ID"
 //
 // @Success 200 {object} entity.EventDetail
-// @Router /events/{id}/{eventId}/leave [post]
+// @Router /events/{eventId}/leave [post]
 // @Tags events
 // @Security AccessToken[admin, user]
 func (c eventController) LeaveEvent(ID uuid.UUID, eventID string) error {
@@ -58,9 +55,8 @@ func (c eventController) LeaveEvent(ID uuid.UUID, eventID string) error {
 //
 // @Produce json
 //
-//	@Param id path string true "Id"
 //	@Success 200 {object} entity.EventDetail
-//	@Router /events/{id}/user [get]
+//	@Router /events/user [get]
 //
 // @Tags events
 // @Security AccessToken[admin, user]

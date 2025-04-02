@@ -23,6 +23,7 @@ import (
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/repository"
 	eventservice "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/event-service"
 	"github.com/gin-contrib/cors"
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 
@@ -129,8 +130,8 @@ func main() {
 
 		c.JSON(200, events)
 	})
-	server.POST("/v1/events/:id/:eventId/join", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
-		uid, exists := c.Get("uid")
+	server.POST("/v1/events/:eventId/join", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		uid, exists := c.Get("user_id")
 		if !exists {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "UID not found"})
 			return
@@ -156,16 +157,20 @@ func main() {
 
 		c.JSON(200, gin.H{"message": "joined"})
 	})
-	server.POST("/v1/events/:id/:eventId/leave", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
-		id := c.Param("id")
+	server.POST("/v1/events/:eventId/leave", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		uid, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "UID not found"})
+			return
+		}
 		eventID := c.Param("eventId")
-		uid, err := uuid.Parse(id)
+		parsedUID, err := uuid.Parse(uid.(string))
 		if err != nil {
 			fmt.Println("Unexpected UUID:", err)
 			return
 		}
 
-		leaveErr := eventController.LeaveEvent(uid, eventID)
+		leaveErr := eventController.LeaveEvent(parsedUID, eventID)
 		if leaveErr != nil {
 			if errors.Is(leaveErr, gorm.ErrRecordNotFound) {
 				c.JSON(404, gin.H{"error": leaveErr.Error()})
@@ -177,15 +182,15 @@ func main() {
 
 		c.JSON(200, gin.H{"message": "left"})
 	})
-	server.GET("/v1/events/:id/user", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
-		id := c.Param("id")
-		uid, err := uuid.Parse(id)
-		if err != nil {
-			fmt.Println("Invalid UUID:", err)
-			c.JSON(400, gin.H{"error": err.Error()})
+	server.GET("/v1/events/user", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		uid, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "UID not found"})
 			return
 		}
-		event, err := eventController.GetEventByUser(uid)
+
+		parsedUID, err := uuid.Parse(uid.(string))
+		event, err := eventController.GetEventByUser(parsedUID)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -219,10 +224,40 @@ func tokenMiddleware(firebaseAuth *auth.Client, allowedRoles []enum.Role) gin.Ha
 			c.Abort()
 			return
 		}
+		tokenString := strings.TrimPrefix(token, "Bearer ")
+		claims, err := parseToken(tokenString)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Geçersiz token"})
+			c.Abort()
+			return
+		}
+
+		c.Set("user_id", claims["userid"])
 
 		// Sonraki handler'a yönlendir
 		c.Next()
 	}
+}
+func parseToken(tokenString string) (jwt.MapClaims, error) {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		// Algoritmayı doğrula
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("geçersiz imzalama yöntemi")
+		}
+		secretKey := []byte(envService.GetEnvServiceInstance().Env.JWTSecret)
+		return secretKey, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	// Claims'i döndür
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims, nil
+	}
+
+	return nil, fmt.Errorf("geçersiz token")
 }
 
 func getTokenFromHeader(r *gin.Context) (string, error) {
