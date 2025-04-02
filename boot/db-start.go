@@ -2,9 +2,10 @@ package boot
 
 import (
 	"database/sql"
-	envService "gilab.com/pragmaticreviews/golang-gin-poc/internal/config"
 	"log"
 	"time"
+
+	envService "gilab.com/pragmaticreviews/golang-gin-poc/internal/config"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -15,9 +16,9 @@ import (
 
 func DbStart() *gorm.DB {
 	env := envService.GetEnvServiceInstance()
-	var dsnWithoutDB = "root:1234@tcp(localhost:3306)/?parseTime=True"
 
 	dsn := env.Env.DBString
+	dsnWithoutDB := env.Env.DSNWithoutDB
 
 	dbTemp, err := sql.Open("mysql", dsnWithoutDB)
 	if err != nil {

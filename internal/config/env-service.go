@@ -13,6 +13,7 @@ import (
 type Environment struct {
 	TicketMasterAPIToken string
 	DBString             string
+	DSNWithoutDB         string
 	AppPort              string
 	JWTSecret            string
 }
@@ -47,6 +48,7 @@ func loadEnv() *Environment {
 	return &Environment{
 		TicketMasterAPIToken: os.Getenv("TICKET_MASTER_API_TOKEN"),
 		AppPort:              os.Getenv("APP_PORT"),
+		DSNWithoutDB:         os.Getenv("DSN_WITHOUT_DB"),
 		DBString:             os.Getenv("DB_STRING"),
 		JWTSecret:            os.Getenv("JWT_SECRET"),
 	}

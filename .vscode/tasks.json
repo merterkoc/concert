@@ -1,0 +1,16 @@
+{
+    "version": "2.0.0",
+    "presentation": {
+        "echo": false
+    },
+    "tasks": [
+        {
+            "label": "First",
+            "type": "shell",
+            "command": "${workspaceFolder}/sh/before_launch.sh",
+            "runOptions": {
+                "runOn": "folderOpen"
+            }
+        }
+    ]
+}

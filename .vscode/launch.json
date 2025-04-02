@@ -10,7 +10,8 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/server.go",
-            "buildFlags": "-tags=dev"
+            "buildFlags": "-tags=dev",
+            "preLaunchTask": "First"
         },
         {
             "name": "Launch Package (Prod)",
@@ -18,7 +19,8 @@
             "request": "launch",
             "mode": "auto",
             "program": "${workspaceFolder}/server.go",
-            "buildFlags": "-tags=prod"
+            "buildFlags": "-tags=prod",
+            "preLaunchTask": "First"
         }
     ]
 }
