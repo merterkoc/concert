@@ -1,5 +1,5 @@
 {
     "gopls": {
-        "buildFlags": ["-tags=dev,prod"]
+        "buildFlags": ["-tags=dev,prod,stage"]
     }
 }

@@ -2,15 +2,16 @@ package main
 
 import (
 	"errors"
-	"firebase.google.com/go/auth"
 	"fmt"
+	"log"
+	"net/http"
+	"strings"
+
+	"firebase.google.com/go/auth"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/dto"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity/enum"
 	identityservice "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/identity-service"
 	"golang.org/x/net/context"
-	"log"
-	"net/http"
-	"strings"
 
 	"time"
 
@@ -37,7 +38,7 @@ import (
 var (
 	db                      = boot.DbStart()
 	firebase                = boot.FirebaseStart()
-	identityService         = identityservice.NewIdentityService(repository.NewIdentityRepository(db, firebase))
+	identityService         = identityservice.NewIdentityService(repository.NewIdentityRepository(db, firebase), firebase)
 	newExternalEventService = externalEventService.NewEventService(
 		envService.GetEnvServiceInstance(),
 	)
@@ -78,6 +79,10 @@ func main() {
 	authClient, err := firebase.Auth(context.Background())
 	if err != nil {
 		log.Fatalf("Firebase auth client oluşturulamadı: %v", err)
+	}
+	envValue := envService.GetEnvServiceInstance().GetEnv()
+	if envValue == "stage" {
+		//authClient.UseEmulator("localhost", 9099)
 	}
 
 	server.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler,

@@ -2,9 +2,12 @@ package repository
 
 import (
 	"errors"
+	"fmt"
+	"log"
+	"net/http"
+
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
-	"fmt"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/dto"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity/enum"
@@ -14,8 +17,6 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/net/context"
 	"gorm.io/gorm"
-	"log"
-	"net/http"
 )
 
 type IdentityRepository struct {

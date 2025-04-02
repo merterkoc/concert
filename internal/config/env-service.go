@@ -35,6 +35,10 @@ func GetEnvServiceInstance() *EnvService {
 	return envServiceInstance
 }
 
+func (e *EnvService) GetEnv() string {
+	return config.GetConfig()
+}
+
 func loadEnv() *Environment {
 
 	env := config.GetConfig()
