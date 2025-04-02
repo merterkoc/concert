@@ -15,6 +15,7 @@ import (
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/mapper"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"golang.org/x/net/context"
 	"gorm.io/gorm"
 )
@@ -117,7 +118,7 @@ func (r *IdentityRepository) VerifyAndGenerateToken(ctx *gin.Context, firebaseTo
 
 }
 
-func (r *IdentityRepository) GetUserInfo(id string) (entity.User, error) {
+func (r *IdentityRepository) GetUserInfoById(id uuid.UUID) (entity.User, error) {
 	var user entity.User
 
 	err := r.db.Where("id = ?", id).First(&user).Error

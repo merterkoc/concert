@@ -62,7 +62,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Return event successfully",
                         "schema": {
                             "$ref": "#/definitions/entity.Event"
                         }
@@ -91,7 +91,7 @@ const docTemplate = `{
                 "operationId": "get-event-by-user",
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Return event detail successfully",
                         "schema": {
                             "$ref": "#/definitions/entity.EventDetail"
                         }
@@ -129,7 +129,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Return event detail successfully",
                         "schema": {
                             "$ref": "#/definitions/entity.EventDetail"
                         }
@@ -167,7 +167,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Return event detail successfully",
                         "schema": {
                             "$ref": "#/definitions/entity.EventDetail"
                         }
@@ -205,7 +205,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Return event detail successfully",
                         "schema": {
                             "$ref": "#/definitions/entity.EventDetail"
                         }
@@ -241,7 +241,15 @@ const docTemplate = `{
             }
         },
         "/identity/userinfo": {
-            "post": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
                 "description": "Get user info",
                 "consumes": [
                     "application/json"
@@ -253,20 +261,11 @@ const docTemplate = `{
                     "identity"
                 ],
                 "summary": "Get user info",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "IdToken",
-                        "name": "idToken",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "Return user dto successfully",
                         "schema": {
-                            "type": "string"
+                            "$ref": "#/definitions/dto.UserDto"
                         }
                     }
                 }
@@ -316,6 +315,23 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.UserDto": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_name": {
+                    "type": "string"
+                },
+                "last_name": {
                     "type": "string"
                 }
             }

@@ -13,6 +13,17 @@ definitions:
     - password
     - username
     type: object
+  dto.UserDto:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+    type: object
   dto.VerifyTokenRequest:
     properties:
       idToken:
@@ -320,7 +331,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Return event successfully
           schema:
             $ref: '#/definitions/entity.Event'
       security:
@@ -344,7 +355,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Return event detail successfully
           schema:
             $ref: '#/definitions/entity.EventDetail'
       security:
@@ -368,7 +379,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Return event detail successfully
           schema:
             $ref: '#/definitions/entity.EventDetail'
       security:
@@ -392,7 +403,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Return event detail successfully
           schema:
             $ref: '#/definitions/entity.EventDetail'
       security:
@@ -410,7 +421,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Return event detail successfully
           schema:
             $ref: '#/definitions/entity.EventDetail'
       security:
@@ -439,23 +450,21 @@ paths:
       tags:
       - identity
   /identity/userinfo:
-    post:
+    get:
       consumes:
       - application/json
       description: Get user info
-      parameters:
-      - description: IdToken
-        in: path
-        name: idToken
-        required: true
-        type: string
       produces:
       - application/json
       responses:
         "200":
-          description: OK
+          description: Return user dto successfully
           schema:
-            type: string
+            $ref: '#/definitions/dto.UserDto'
+      security:
+      - AccessToken:
+        - admin
+        - user
       summary: Get user info
       tags:
       - identity

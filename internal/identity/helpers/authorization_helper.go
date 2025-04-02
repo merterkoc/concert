@@ -2,13 +2,14 @@ package helpers
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	envService "gilab.com/pragmaticreviews/golang-gin-poc/internal/config"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity/enum"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
-	"net/http"
-	"time"
 )
 
 var mySigningKey = []byte(envService.GetEnvServiceInstance().Env.JWTSecret)
@@ -37,7 +38,8 @@ func GenerateToken(userid string, role enum.Role) (string, error) {
 		return "", err
 	}
 
-	return tokenString, nil
+	bearerToken := "Bearer " + tokenString
+	return bearerToken, nil
 }
 
 func GenerateTokenHandler(c *gin.Context, userid uuid.UUID, role enum.Role) {
@@ -49,7 +51,7 @@ func GenerateTokenHandler(c *gin.Context, userid uuid.UUID, role enum.Role) {
 
 	tokenString, err := GenerateToken(userid.String(), role)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token oluşturulamadı"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token generation failed"})
 		return
 	}
 
@@ -58,11 +60,9 @@ func GenerateTokenHandler(c *gin.Context, userid uuid.UUID, role enum.Role) {
 }
 
 func VerifyToken(tokenString string, allowedRoles []enum.Role) (jwt.MapClaims, error) {
-	// Token'ı ayrıştır
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// İmzalama yöntemini kontrol et
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Beklenmeyen imzalama yöntemi: %v", token.Header["alg"])
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
 		return mySigningKey, nil
 	})
@@ -72,10 +72,9 @@ func VerifyToken(tokenString string, allowedRoles []enum.Role) (jwt.MapClaims, e
 	}
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		// Rolü claims'den al
 		role, ok := claims["role"].(string)
 		if !ok {
-			return nil, fmt.Errorf("Rol bilgisi bulunamadı")
+			return nil, fmt.Errorf("Role not found.")
 		}
 
 		if len(allowedRoles) == 0 {

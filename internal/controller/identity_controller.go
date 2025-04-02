@@ -5,17 +5,24 @@ import (
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity"
 	identityService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/identity-service"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"golang.org/x/net/context"
 )
 
 type IdentityController interface {
 	CreateUser(ctx context.Context, createUserRequest dto.CreateUserRequest) (*entity.User, error)
 	VerifyToken(ctx *gin.Context, verifyTokenRequest dto.VerifyTokenRequest)
-	GetUserInfo(idToken string) (entity.User, error)
+	GetUserInfoById(ctx *gin.Context, id uuid.UUID)
 }
 
 type identityController struct {
 	identityService identityService.IdentityService
+}
+
+func NewIdentityController(identityService identityService.IdentityService) IdentityController {
+	return identityController{
+		identityService: identityService,
+	}
 }
 
 // CreateUser is a controller method
@@ -44,22 +51,16 @@ func (c identityController) VerifyToken(ctx *gin.Context, verifyTokenRequest dto
 	c.identityService.VerifyTokenAndGenerateCustomToken(ctx, verifyTokenRequest.IdToken)
 }
 
-// GetUserInfo is a controller method
+// GetUserInfoById is a controller method
 // that gets the user info
 // @Summary Get user info
 // @Description Get user info
 // @Tags identity
 // @Accept  json
 // @Produce  json
-// @Param idToken path string true "IdToken"
-// @Success 200 {object} string
-// @Router /identity/userinfo [post]
-func (c identityController) GetUserInfo(id string) (entity.User, error) {
-	return c.identityService.GetUserInfo(id)
-}
-
-func NewIdentityController(identityService identityService.IdentityService) IdentityController {
-	return identityController{
-		identityService: identityService,
-	}
+// @Success 200 {object} dto.UserDto "Return user dto successfully"
+// @Router /identity/userinfo [get]
+// @Security AccessToken[admin, user]
+func (c identityController) GetUserInfoById(ctx *gin.Context, id uuid.UUID) {
+	c.identityService.GetUserInfoById(ctx, id)
 }

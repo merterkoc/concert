@@ -10,9 +10,11 @@ import (
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity/enum"
 	authorizationHelper "gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/helpers"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/mapper"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/repository"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"golang.org/x/net/context"
 )
 
@@ -74,8 +76,22 @@ func (i identityService) VerifyTokenAndGenerateCustomToken(ctx *gin.Context, idT
 	GenerateCustomToken(ctx, client, userInfo)
 }
 
-func (i identityService) GetUserInfo(id string) (entity.User, error) {
-	return i.identityRepo.GetUserInfo(id)
+func (i identityService) GetUserInfoById(c *gin.Context, id uuid.UUID) {
+	userEntity, err := i.identityRepo.GetUserInfoById(id)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	userdto, err := mapper.MapUserEntityToDto(userEntity)
+
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(200, userdto)
+
 }
 
 func (i identityService) VerifyCustomToken(ctx context.Context, firebaseAuth *auth.Client, customToken string, allowedRoles []enum.Role) (jwt.MapClaims, error) {

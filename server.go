@@ -114,6 +114,19 @@ func main() {
 
 		c.JSON(200, user)
 	})
+	server.GET("/v1/identity/userinfo", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		uid, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "UID not found"})
+			return
+		}
+		parsedUID, err := uuid.Parse(uid.(string))
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		NewIdentityController.GetUserInfoById(c, parsedUID)
+	})
 	server.GET("/v1/events", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
 		var req eventDTO.GetEventRequest
 

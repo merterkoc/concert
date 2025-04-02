@@ -22,7 +22,7 @@ type eventController struct {
 // @ID get-event-by-id
 // @Produce json
 // @Param id path string true "Id"
-// @Success 200 {object} entity.EventDetail
+// @Success 200 {object} entity.EventDetail "Return event detail successfully"
 // @Router /events/{id} [get]
 // @Tags ticketmaster-event
 // @Security AccessToken[admin, user]
@@ -40,7 +40,7 @@ func (c eventController) FindById(id string) (entity.EventDetail, error) {
 // @Param location query string false "Location"
 // @Param page query int 1 "Page"
 // @Param size query int 3 "Size"
-// @Success 200 {object} entity.Event
+// @Success 200 {object} entity.Event "Return event successfully"
 // @Router /events [get]
 // @Tags ticketmaster-event
 // @Security AccessToken[admin, user]
