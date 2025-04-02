@@ -1,5 +1,6 @@
 .env.dev
 .env.prod
+.env.stage
 
 firebase-config/dev/serviceAccountKey.json
 firebase-config/prod/serviceAccountKey.json
