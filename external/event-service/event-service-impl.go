@@ -67,8 +67,16 @@ func (e *eventService) FindByKeywordOrLocation(keyword string, location string, 
 	if keyword != "" {
 		params.Add("keyword", keyword)
 	}
+	if keyword != "" {
+		params.Add("keyword", keyword)
+	}
+	if size <= 0 {
+		size = 100
+	}
 	params.Add("size", strconv.Itoa(size))
-	params.Add("page", strconv.Itoa(page))
+	if page > 0 {
+		params.Add("page", strconv.Itoa(page))
+	}
 	params.Add("apikey", envService.GetEnvServiceInstance().Env.TicketMasterAPIToken)
 
 	baseURL.RawQuery = params.Encode()
