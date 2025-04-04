@@ -4,7 +4,7 @@ import "time"
 
 type UserDto struct {
 	Email     string    `json:"email"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
+	UserName  string    `json:"username"`
 	CreatedAt time.Time `json:"created_at"`
+	UserImage string    `json:"user_image"`
 }

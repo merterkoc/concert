@@ -30,9 +30,13 @@ func NewIdentityController(identityService identityService.IdentityService) Iden
 // @Summary Create user
 // @Description Create user
 // @Tags identity
-// @Accept  json
+// @Accept  multipart/form-data
 // @Produce  json
-// @Param createUserRequest body dto.CreateUserRequest true "CreateUserRequest"
+// @Param email formData string true "User's email"
+// @Param password formData string true "User's password"
+// @Param username formData string true "User's username"
+// @Param image formData file false "User's profile image"
+// @Success 200 {object} entity.User "Return user successfully"
 // @Router /identity/create [post]
 func (c identityController) CreateUser(ctx context.Context, createUserRequest dto.CreateUserRequest) (*entity.User, error) {
 	return c.identityService.CreateUser(ctx, createUserRequest)

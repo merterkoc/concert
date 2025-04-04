@@ -15,6 +15,7 @@ type User struct {
 	Email       string    `gorm:"type:varchar(255);unique;not null" json:"email"`
 	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
 	Role        enum.Role `gorm:"type:enum('user', 'admin');not null;default:'user'" json:"role"`
+	UserImage   *string   `gorm:"type:varchar(255);" json:"user_image"`
 }
 
 // BeforeCreate hook to generate UUID and set default role

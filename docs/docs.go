@@ -217,7 +217,7 @@ const docTemplate = `{
             "post": {
                 "description": "Create user",
                 "consumes": [
-                    "application/json"
+                    "multipart/form-data"
                 ],
                 "produces": [
                     "application/json"
@@ -228,16 +228,41 @@ const docTemplate = `{
                 "summary": "Create user",
                 "parameters": [
                     {
-                        "description": "CreateUserRequest",
-                        "name": "createUserRequest",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateUserRequest"
-                        }
+                        "type": "string",
+                        "description": "User's email",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User's password",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "User's username",
+                        "name": "username",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "User's profile image",
+                        "name": "image",
+                        "in": "formData"
                     }
                 ],
-                "responses": {}
+                "responses": {
+                    "200": {
+                        "description": "Return user successfully",
+                        "schema": {
+                            "$ref": "#/definitions/entity.User"
+                        }
+                    }
+                }
             }
         },
         "/identity/userinfo": {
@@ -300,25 +325,6 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "dto.CreateUserRequest": {
-            "type": "object",
-            "required": [
-                "email",
-                "password",
-                "username"
-            ],
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "password": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
         "dto.UserDto": {
             "type": "object",
             "properties": {
@@ -328,10 +334,10 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
-                "first_name": {
+                "user_image": {
                     "type": "string"
                 },
-                "last_name": {
+                "username": {
                     "type": "string"
                 }
             }
@@ -741,6 +747,29 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "role": {
+                    "$ref": "#/definitions/enum.Role"
+                },
+                "user_image": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.Venue": {
             "type": "object",
             "properties": {
@@ -760,6 +789,17 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "enum.Role": {
+            "type": "string",
+            "enum": [
+                "user",
+                "admin"
+            ],
+            "x-enum-varnames": [
+                "User",
+                "Admin"
+            ]
         }
     },
     "securityDefinitions": {

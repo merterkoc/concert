@@ -1,10 +1,15 @@
 package repository
 
 import (
+	"cloud.google.com/go/storage"
+
 	"errors"
 	"fmt"
+	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
+	"time"
 
 	firebase "firebase.google.com/go"
 	"firebase.google.com/go/auth"
@@ -21,22 +26,32 @@ import (
 )
 
 type IdentityRepository struct {
-	db       *gorm.DB
-	firebase *firebase.App
+	db            *gorm.DB
+	firebase      *firebase.App
+	storageClient *storage.Client
 }
 
-func NewIdentityRepository(db *gorm.DB, firebase *firebase.App) *IdentityRepository {
-	return &IdentityRepository{db: db, firebase: firebase}
+func NewIdentityRepository(db *gorm.DB, firebase *firebase.App, storageClient *storage.Client) *IdentityRepository {
+	return &IdentityRepository{db: db, firebase: firebase, storageClient: storageClient}
 }
 
 func (r *IdentityRepository) CreateUser(ctx context.Context, createUserRequest dto.CreateUserRequest) (*entity.User, error) {
+	var imageURL string
+	if createUserRequest.Image != nil {
+		url, err := r.uploadImageFirebaseStorage(ctx, createUserRequest.Image)
+		if err != nil {
+			return nil, fmt.Errorf("image upload failed: %w", err)
+		}
+		imageURL = url
+	}
+
 	client, err := r.firebase.Auth(ctx)
 	if err != nil {
-		log.Println(err)
+		log.Printf("failed to get Firebase Auth client: %v", err)
 		return nil, err
 	}
 
-	toEntity, err := mapper.MapUserRequestToEntity(createUserRequest)
+	userEntity, err := mapper.MapUserRequestToEntityWithImage(createUserRequest, &imageURL)
 	if err != nil {
 		return nil, err
 	}
@@ -53,9 +68,10 @@ func (r *IdentityRepository) CreateUser(ctx context.Context, createUserRequest d
 	}
 
 	user := &entity.User{
-		Email:       toEntity.Email,
-		Username:    toEntity.Username,
+		Email:       userEntity.Email,
+		Username:    userEntity.Username,
 		FirebaseUID: token.UID,
+		UserImage:   userEntity.UserImage,
 	}
 
 	err = r.db.Create(user).Error
@@ -188,4 +204,45 @@ func (r *IdentityRepository) GetUserInfoFromFirebaseToken(firebaseUID string) (e
 	}
 
 	return user, nil
+}
+
+func (r *IdentityRepository) uploadImageFirebaseStorage(ctx context.Context, fileHeader *multipart.FileHeader) (string, error) {
+
+	// Dosyayı aç
+	file, err := fileHeader.Open()
+	if err != nil {
+		return "", fmt.Errorf("File not opened: %v", err)
+	}
+	defer file.Close()
+
+	// Firebase Storage bucket'ını belirt
+	bucketName := "gigbuddy-dev.firebasestorage.app"
+	bucket := r.storageClient.Bucket(bucketName)
+
+	// Dosya adını belirle (örneğin, benzersiz bir ad oluşturabilirsiniz)
+	objectName := fmt.Sprintf("uploads/user_images/%d-%s", time.Now().UnixNano(), fileHeader.Filename)
+	object := bucket.Object(objectName)
+
+	// Dosyayı yüklemek için bir Writer oluştur
+	writer := object.NewWriter(ctx)
+	writer.ContentType = fileHeader.Header.Get("Content-Type")
+
+	// Dosya içeriğini Firebase Storage'a yaz
+	if _, err := io.Copy(writer, file); err != nil {
+		return "", fmt.Errorf("Dosya Firebase Storage'a yazılamadı: %v", err)
+	}
+
+	// Writer'ı kapat
+	if err := writer.Close(); err != nil {
+		return "", fmt.Errorf("Writer kapatılamadı: %v", err)
+	}
+
+	// Dosyanın herkese açık olarak erişilebilir olmasını sağla
+	if err := object.ACL().Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
+		return "", fmt.Errorf("Dosya herkese açık yapılamadı: %v", err)
+	}
+
+	// Dosyanın herkese açık URL'sini oluştur
+	publicURL := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, objectName)
+	return publicURL, nil
 }

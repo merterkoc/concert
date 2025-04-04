@@ -39,7 +39,8 @@ import (
 var (
 	db                      = boot.DbStart()
 	firebase                = boot.FirebaseStart()
-	identityService         = identityservice.NewIdentityService(repository.NewIdentityRepository(db, firebase), firebase)
+	storageClient           = boot.FirebaseStorageStart()
+	identityService         = identityservice.NewIdentityService(repository.NewIdentityRepository(db, firebase, storageClient), firebase)
 	newExternalEventService = externalEventService.NewEventService(
 		envService.GetEnvServiceInstance(),
 	)
@@ -99,19 +100,26 @@ func main() {
 		NewIdentityController.VerifyToken(c, req)
 	})
 	server.POST("/v1/identity/create", func(c *gin.Context) {
-		var req dto.CreateUserRequest
 
-		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
-			return
+		request := dto.CreateUserRequest{
+			Email:    c.PostForm("email"),
+			Password: c.PostForm("password"),
+			Username: c.PostForm("username"),
 		}
 
-		user, err := NewIdentityController.CreateUser(c, req)
+		file, _ := c.FormFile("image")
+		if err != nil {
+			log.Printf("failed to get image file: %v", err)
+		}
+
+		request.Image = file
+		user, err := NewIdentityController.CreateUser(c, request)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
 
+		// Return the created user
 		c.JSON(200, user)
 	})
 	server.GET("/v1/identity/userinfo", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
