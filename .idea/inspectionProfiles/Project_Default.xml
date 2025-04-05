@@ -5,6 +5,7 @@
     <inspection_tool class="GoDfaErrorMayBeNotNil" enabled="true" level="WARNING" enabled_by_default="true">
       <functions>
         <function importPath="github.com/golang-jwt/jwt/v4" name="Parse" />
+        <function importPath="github.com/mitchellh/mapstructure" name="NewDecoder" />
       </functions>
     </inspection_tool>
   </profile>

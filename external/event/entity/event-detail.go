@@ -9,11 +9,10 @@ type EventDetail struct {
 	URL             string           `json:"url"`
 	Locale          string           `json:"locale"`
 	Images          []Image          `json:"images"`
-	Sales           Sales            `json:"sales"`
-	Dates           Dates            `json:"dates"`
-	Classifications []Classification `json:"classifications"`
-	Links           Links            `json:"_links"`
-	Embedded        Embedded         `json:"_embedded"`
+	Dates           Dates            `json:"dates" gorm:"-"`
+	Classifications []Classification `json:"classifications" gorm:"-"`
+	Links           Links            `json:"_links" gorm:"-"`
+	Embedded        Embedded         `json:"_embedded" gorm:"-"`
 }
 
 // Image struct
@@ -23,11 +22,6 @@ type Image struct {
 	Width    int    `json:"width"`
 	Height   int    `json:"height"`
 	Fallback bool   `json:"fallback"`
-}
-
-// Sales struct
-type Sales struct {
-	Public PublicSale `json:"public"`
 }
 
 // PublicSale struct

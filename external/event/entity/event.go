@@ -5,18 +5,17 @@ type Embedde struct {
 }
 
 type ApiResponse struct {
-	Events []Event `json:"events"`
+	Events []Event `json:"events" gorm:"-"`
 }
 
 type Event struct {
-	Name        string       `json:"name"`
-	Type        string       `json:"type"`
-	ID          string       `json:"id"`
-	Locale      string       `json:"locale"`
-	Sales       Sales        `json:"sales"`
-	Dates       Dates        `json:"dates"`
-	PriceRanges []PriceRange `json:"priceRanges"`
-	Embedded    Embedded     `json:"_embedded"`
+	Name        string       `json:"name" gorm:"-"`
+	Type        string       `json:"type" gorm:"-"`
+	ID          string       `json:"id" gorm:"-"`
+	Locale      string       `json:"locale" gorm:"-"`
+	Dates       Dates        `json:"dates" gorm:"-"`
+	PriceRanges []PriceRange `json:"priceRanges" gorm:"-"`
+	Embedded    Embedded     `json:"_embedded" gorm:"-"`
 }
 
 type SalesPeriod struct {

@@ -3,18 +3,25 @@ package eventservice
 import (
 	"encoding/json"
 	"fmt"
+	"gilab.com/pragmaticreviews/golang-gin-poc/external/event/dto"
+	"gilab.com/pragmaticreviews/golang-gin-poc/external/mapper"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 
-	entity "gilab.com/pragmaticreviews/golang-gin-poc/external/event/domain"
+	"gilab.com/pragmaticreviews/golang-gin-poc/external/event/entity"
 	envService "gilab.com/pragmaticreviews/golang-gin-poc/internal/config"
+
+	internalEventService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/event-service"
 )
 
 type eventService struct {
-	apiURL string
+	internalEventService internalEventService.EventService
+	apiURL               string
 }
 
 func (e *eventService) FindById(id string) (entity.EventDetail, error) {
@@ -53,10 +60,10 @@ func (e *eventService) FindById(id string) (entity.EventDetail, error) {
 
 }
 
-func (e *eventService) FindByKeywordOrLocation(keyword string, location string, page int, size int) ([]entity.Event, error) {
+func (e *eventService) FindByKeywordOrLocation(c *gin.Context, keyword string, location string, page int, size int) ([]dto.EventDTO, error) {
 	baseURL, err := url.Parse(e.apiURL + "/events.json")
 	if err != nil {
-		return []entity.Event{}, fmt.Errorf("invalid API URL: %w", err)
+		return []dto.EventDTO{}, fmt.Errorf("invalid API URL: %w", err)
 	}
 
 	params := url.Values{}
@@ -85,35 +92,69 @@ func (e *eventService) FindByKeywordOrLocation(keyword string, location string, 
 
 	resp, err := http.Get(baseURL.String())
 	if err != nil {
-		return []entity.Event{}, fmt.Errorf("API request failed: %w", err)
+		return []dto.EventDTO{}, fmt.Errorf("API request failed: %w", err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
-		return []entity.Event{}, fmt.Errorf("unexpected API response: %d %s, body: %s", resp.StatusCode, http.StatusText(resp.StatusCode), string(body))
+		return []dto.EventDTO{}, fmt.Errorf("unexpected API response: %d %s, body: %s", resp.StatusCode, http.StatusText(resp.StatusCode), string(body))
 	}
 
 	if err != nil {
-		return []entity.Event{}, fmt.Errorf("failed to read API response: %w", err)
+		return []dto.EventDTO{}, fmt.Errorf("failed to read API response: %w", err)
 	}
 
 	var response entity.Embedde
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		return []entity.Event{}, fmt.Errorf("JSON parse error: %w", err)
+		return []dto.EventDTO{}, fmt.Errorf("JSON parse error: %w", err)
 	}
 
 	if len(response.ApiResponse.Events) > 0 {
-		return response.ApiResponse.Events, nil
+		uid, exists := c.Get("user_id")
+		if !exists {
+			return []dto.EventDTO{}, fmt.Errorf("user id not found")
+		}
+		id, err := uuid.Parse(uid.(string))
+		if err != nil {
+			return []dto.EventDTO{}, fmt.Errorf("failed to parse user id: %w", err)
+		}
+
+		userEvents, err := e.internalEventService.GetEventByUser(id)
+		if err != nil {
+			return nil, err
+		}
+
+		joinedEventMap := make(map[string]bool)
+		for _, eventID := range userEvents {
+			joinedEventMap[eventID] = true
+		}
+
+		var events []dto.EventDTO
+		for _, event := range response.ApiResponse.Events {
+			isJoined := joinedEventMap[event.ID]
+
+			participant, err := e.internalEventService.GetUsersAvatarByEventId(event.ID)
+			if err != nil {
+				return nil, err
+			}
+
+			eventDto, err := mapper.MapEventEntityToDTO(event, isJoined, participant)
+			if err != nil {
+				return nil, fmt.Errorf("failed to map event entity to dto: %w", err)
+			}
+
+			events = append(events, *eventDto)
+		}
+		return events, nil
 	}
 
-	return []entity.Event{}, fmt.Errorf("no events found")
+	return []dto.EventDTO{}, fmt.Errorf("no events found")
 }
 
-func NewEventService(
-	envService *envService.EnvService,
-) EventService {
+func NewEventService(internalEventService internalEventService.EventService) EventService {
 	return &eventService{
-		apiURL: "https://app.ticketmaster.com/discovery/v2",
+		apiURL:               "https://app.ticketmaster.com/discovery/v2",
+		internalEventService: internalEventService,
 	}
 }

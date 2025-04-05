@@ -136,7 +136,6 @@ func (r *IdentityRepository) VerifyAndGenerateToken(ctx *gin.Context, firebaseTo
 
 func (r *IdentityRepository) GetUserInfoById(id uuid.UUID) (entity.User, error) {
 	var user entity.User
-
 	err := r.db.Where("id = ?", id).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {

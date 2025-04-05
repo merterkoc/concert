@@ -21,6 +21,10 @@ func (e *eventService) GetEventByUser(ID uuid.UUID) ([]string, error) {
 	return e.eventRepo.GetEventByUser(ID.String())
 }
 
+func (e *eventService) GetUsersAvatarByEventId(id string) ([]*string, error) {
+	return e.eventRepo.GetUsersAvatarByEventId(id)
+}
+
 func NewEventService(
 	eventRepo *repository.EventRepository,
 ) EventService {

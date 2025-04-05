@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"gilab.com/pragmaticreviews/golang-gin-poc/external/event/entity"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity/enum"
 	"time"
 
@@ -9,13 +10,14 @@ import (
 )
 
 type User struct {
-	ID          uuid.UUID `gorm:"type:char(36);primaryKey" json:"id"`
-	FirebaseUID string    `gorm:"type:varchar(255);not null" json:"-"`
-	Username    string    `gorm:"type:varchar(255);unique;not null" json:"username"`
-	Email       string    `gorm:"type:varchar(255);unique;not null" json:"email"`
-	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
-	Role        enum.Role `gorm:"type:enum('user', 'admin');not null;default:'user'" json:"role"`
-	UserImage   *string   `gorm:"type:varchar(255);" json:"user_image"`
+	ID          uuid.UUID      `gorm:"type:char(36);primaryKey" json:"id"`
+	FirebaseUID string         `gorm:"type:varchar(255);not null" json:"-"`
+	Username    string         `gorm:"type:varchar(255);unique;not null" json:"username"`
+	Email       string         `gorm:"type:varchar(255);unique;not null" json:"email"`
+	CreatedAt   time.Time      `gorm:"autoCreateTime" json:"created_at"`
+	Role        enum.Role      `gorm:"type:enum('user', 'admin');not null;default:'user'" json:"role"`
+	UserImage   *string        `gorm:"type:varchar(255);" json:"user_image"`
+	Events      []entity.Event `gorm:"many2many:user_events;constraint:OnDelete:CASCADE" json:"events" gorm:"-"`
 }
 
 // BeforeCreate hook to generate UUID and set default role

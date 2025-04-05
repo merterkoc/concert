@@ -64,7 +64,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Return event successfully",
                         "schema": {
-                            "$ref": "#/definitions/entity.Event"
+                            "$ref": "#/definitions/dto.EventDTO"
                         }
                     }
                 }
@@ -325,6 +325,41 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.EventDTO": {
+            "type": "object",
+            "properties": {
+                "distance": {
+                    "type": "string"
+                },
+                "end": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "is_joined": {
+                    "type": "boolean"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "start": {
+                    "type": "string"
+                },
+                "ticket_url": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.UserDto": {
             "type": "object",
             "properties": {
@@ -470,38 +505,6 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.Event": {
-            "type": "object",
-            "properties": {
-                "_embedded": {
-                    "$ref": "#/definitions/entity.Embedded"
-                },
-                "dates": {
-                    "$ref": "#/definitions/entity.Dates"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "locale": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "priceRanges": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entity.PriceRange"
-                    }
-                },
-                "sales": {
-                    "$ref": "#/definitions/entity.Sales"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
         "entity.EventDetail": {
             "type": "object",
             "properties": {
@@ -631,20 +634,6 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/entity.Link"
                     }
-                }
-            }
-        },
-        "entity.PriceRange": {
-            "type": "object",
-            "properties": {
-                "currency": {
-                    "type": "string"
-                },
-                "max": {
-                    "type": "number"
-                },
-                "min": {
-                    "type": "number"
                 }
             }
         },

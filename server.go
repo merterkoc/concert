@@ -37,16 +37,15 @@ import (
 )
 
 var (
-	db                      = boot.DbStart()
-	firebase                = boot.FirebaseStart()
-	storageClient           = boot.FirebaseStorageStart()
-	identityService         = identityservice.NewIdentityService(repository.NewIdentityRepository(db, firebase, storageClient), firebase)
-	newExternalEventService = externalEventService.NewEventService(
-		envService.GetEnvServiceInstance(),
-	)
+	db              = boot.DbStart()
+	firebase        = boot.FirebaseStart()
+	storageClient   = boot.FirebaseStorageStart()
+	identityRepo    = repository.NewIdentityRepository(db, firebase, storageClient)
+	identityService = identityservice.NewIdentityService(identityRepo, firebase)
 	newEventService = eventservice.NewEventService(
-		repository.NewEventRepository(db),
+		repository.NewEventRepository(db, identityRepo),
 	)
+	newExternalEventService    = externalEventService.NewEventService(newEventService)
 	NewIdentityController      = internalController.NewIdentityController(identityService)
 	NewExternalEventController = externalController.NewEventController(newExternalEventService)
 	eventController            = internalController.NewEventController(newEventService)
@@ -148,7 +147,7 @@ func main() {
 			return
 		}
 
-		events, err := NewExternalEventController.FindByKeywordOrLocation(req)
+		events, err := NewExternalEventController.FindByKeywordOrLocation(c, req)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return

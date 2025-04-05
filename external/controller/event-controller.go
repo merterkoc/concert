@@ -2,13 +2,14 @@ package controller
 
 import (
 	service "gilab.com/pragmaticreviews/golang-gin-poc/external/event-service"
-	entity "gilab.com/pragmaticreviews/golang-gin-poc/external/event/domain"
 	"gilab.com/pragmaticreviews/golang-gin-poc/external/event/dto"
+	entity "gilab.com/pragmaticreviews/golang-gin-poc/external/event/entity"
+	"github.com/gin-gonic/gin"
 )
 
 type EventController interface {
 	FindById(id string) (entity.EventDetail, error)
-	FindByKeywordOrLocation(GetEventRequest dto.GetEventRequest) ([]entity.Event, error)
+	FindByKeywordOrLocation(c *gin.Context, GetEventRequest dto.GetEventRequest) ([]dto.EventDTO, error)
 }
 
 type eventController struct {
@@ -40,12 +41,13 @@ func (c eventController) FindById(id string) (entity.EventDetail, error) {
 // @Param location query string false "Location"
 // @Param page query int 1 "Page"
 // @Param size query int 3 "Size"
-// @Success 200 {object} entity.Event "Return event successfully"
+// @Success 200 {object} dto.EventDTO "Return event successfully"
 // @Router /events [get]
 // @Tags ticketmaster-event
 // @Security AccessToken[admin, user]
-func (c eventController) FindByKeywordOrLocation(GetEventRequest dto.GetEventRequest) ([]entity.Event, error) {
+func (c eventController) FindByKeywordOrLocation(ctx *gin.Context, GetEventRequest dto.GetEventRequest) ([]dto.EventDTO, error) {
 	return c.eventService.FindByKeywordOrLocation(
+		ctx,
 		GetEventRequest.Keyword,
 		GetEventRequest.Location,
 		GetEventRequest.Page,

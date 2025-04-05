@@ -3,16 +3,16 @@ package repository
 import (
 	"fmt"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity"
-
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type EventRepository struct {
-	db *gorm.DB
+	db                 *gorm.DB
+	identityRepository *IdentityRepository
 }
 
-func NewEventRepository(db *gorm.DB) *EventRepository {
+func NewEventRepository(db *gorm.DB, identityRepository *IdentityRepository) *EventRepository {
 	return &EventRepository{db: db}
 }
 
@@ -53,4 +53,32 @@ func (r *EventRepository) GetEventByUser(id string) ([]string, error) {
 		return []string{}, fmt.Errorf("failed to get event list: %w", err)
 	}
 	return eventListIDs, nil
+}
+
+func (r *EventRepository) GetUsersAvatarByEventId(id string) ([]*string, error) {
+
+	var userEvents []entity.UserEvents
+
+	err := r.db.
+		Preload("User").
+		Where("event_id = ?", id).
+		Find(&userEvents).Error
+
+	if err != nil {
+		return []*string{}, fmt.Errorf("failed to get event list: %w", err)
+	}
+
+	var userImages []*string
+	for _, ue := range userEvents {
+		userImages = append(userImages, ue.User.UserImage)
+	}
+
+	//var retrievedCourse Course
+	//db.Preload("Students").First(&retrievedCourse, course2.ID)
+	//fmt.Println("Kurs:", retrievedCourse.Name)
+	//for _, student := range retrievedCourse.Students {
+	//	fmt.Println("Öğrenci:", student.Name)
+	//}
+
+	return userImages, nil
 }
