@@ -30,7 +30,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "ticketmaster-event"
+                    "events"
                 ],
                 "summary": "Get event by keyword",
                 "operationId": "get-event-by-keyword",
@@ -88,7 +88,7 @@ const docTemplate = `{
                     "events"
                 ],
                 "summary": "Get event by user",
-                "operationId": "get-event-by-user",
+                "operationId": "https://pkg.go.dev/golang.org/x/tools/internal/typesinternal#InvalidIfaceAssignget-event-by-user",
                 "responses": {
                     "200": {
                         "description": "Return event detail successfully",
@@ -190,7 +190,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "ticketmaster-event"
+                    "events"
                 ],
                 "summary": "Get event by id",
                 "operationId": "get-event-by-id",

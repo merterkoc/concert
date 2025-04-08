@@ -1,11 +1,15 @@
 package controller
 
 import (
+	"gilab.com/pragmaticreviews/golang-gin-poc/external/event/dto"
 	internalEventService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/internal-event-service"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type EventController interface {
+	FindById(c *gin.Context, id string)
+	FindByKeywordOrLocation(c *gin.Context, GetEventRequest dto.GetEventRequest)
 	JoinEvent(ID uuid.UUID, eventID string) error
 	LeaveEvent(ID uuid.UUID, eventID string) error
 	GetEventByUser(ID uuid.UUID)
@@ -13,6 +17,45 @@ type EventController interface {
 
 type eventController struct {
 	eventService internalEventService.InternalEventService
+}
+
+// FindById is a controller method
+// that returns an event by id
+// @Summary Get event by id
+// @Description Get event by id
+// @ID get-event-by-id
+// @Produce json
+// @Param id path string true "Id"
+// @Success 200 {object} entity.EventDetail "Return event detail successfully"
+// @Router /events/{id} [get]
+// @Tags events
+// @Security AccessToken[admin, user]
+func (c eventController) FindById(ctx *gin.Context, id string) {
+	c.eventService.FindById(ctx, id)
+}
+
+// FindByKeywordOrLocation is a controller method
+// that returns an event by keyword
+// @Summary Get event by keyword
+// @Description Get event by keyword
+// @ID get-event-by-keyword
+// @Produce json
+// @Param keyword query string false "Keyword"
+// @Param location query string false "Location"
+// @Param page query int 1 "Page"
+// @Param size query int 3 "Size"
+// @Success 200 {object} dto.EventDTO "Return event successfully"
+// @Router /events [get]
+// @Tags events
+// @Security AccessToken[admin, user]
+func (c eventController) FindByKeywordOrLocation(ctx *gin.Context, GetEventRequest dto.GetEventRequest) {
+	c.eventService.FindByKeywordOrLocation(
+		ctx,
+		GetEventRequest.Keyword,
+		GetEventRequest.Location,
+		GetEventRequest.Page,
+		GetEventRequest.Size,
+	)
 }
 
 // JoinEvent is a controller method
@@ -51,7 +94,7 @@ func (c eventController) LeaveEvent(ID uuid.UUID, eventID string) error {
 // @Summary Get event by user
 // @Description Get event by user
 //
-//	@ID get-event-by-user
+//	@ID https://pkg.go.dev/golang.org/x/tools/internal/typesinternal#InvalidIfaceAssignget-event-by-user
 //
 // @Produce json
 //

@@ -16,7 +16,6 @@ import (
 	"time"
 
 	_ "gilab.com/pragmaticreviews/golang-gin-poc/docs"
-	externalController "gilab.com/pragmaticreviews/golang-gin-poc/external/controller"
 	internalController "gilab.com/pragmaticreviews/golang-gin-poc/internal/controller"
 
 	externalEventService "gilab.com/pragmaticreviews/golang-gin-poc/external/external-event-service"
@@ -37,20 +36,18 @@ import (
 )
 
 var (
-	db              = boot.DbStart()
-	firebase        = boot.FirebaseStart()
-	storageClient   = boot.FirebaseStorageStart()
-	identityRepo    = repository.NewIdentityRepository(db, firebase, storageClient)
-	identityService = identityservice.NewIdentityService(identityRepo, firebase)
-
-	newExternalEventService = externalEventService.NewEventService(newEventService)
-	newEventService         = internalEventService.NewEventService(
-		repository.NewEventRepository(db, identityRepo),
-		newExternalEventService,
-	)
-	NewIdentityController      = internalController.NewIdentityController(identityService)
-	NewExternalEventController = externalController.NewEventController(newExternalEventService)
-	eventController            = internalController.NewEventController(newEventService)
+	db                      = boot.DbStart()
+	firebase                = boot.FirebaseStart()
+	storageClient           = boot.FirebaseStorageStart()
+	identityRepo            = repository.NewIdentityRepository(db, firebase, storageClient)
+	eventRepo               = repository.NewEventRepository(db, identityRepo)
+	identityService         = identityservice.NewIdentityService(identityRepo, firebase)
+	newExternalEventService = externalEventService.NewEventService()
+	newInternalEventService = internalEventService.NewEventService(
+		*eventRepo,
+		newExternalEventService)
+	NewIdentityController = internalController.NewIdentityController(identityService)
+	eventController       = internalController.NewEventController(newInternalEventService)
 )
 
 // @title GigBuddy API
@@ -67,8 +64,6 @@ var (
 // @scope.admin Grants read and write access to administrative information
 func main() {
 	// Start the server
-	newExternalEventService.SetInternalService(newEventService)
-
 	server := gin.Default()
 
 	// CORS Middleware
@@ -175,13 +170,8 @@ func main() {
 			return
 		}
 
-		events, err := NewExternalEventController.FindByKeywordOrLocation(c, req)
-		if err != nil {
-			c.JSON(500, gin.H{"error": err.Error()})
-			return
-		}
+		eventController.FindByKeywordOrLocation(c, req)
 
-		c.JSON(200, events)
 	})
 	server.POST("/v1/events/:eventId/join", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
 		uid, exists := c.Get("user_id")

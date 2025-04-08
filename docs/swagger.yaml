@@ -396,7 +396,7 @@ paths:
         - user
       summary: Get event by keyword
       tags:
-      - ticketmaster-event
+      - events
   /events/{eventId}/join:
     post:
       description: Join event
@@ -468,11 +468,11 @@ paths:
         - user
       summary: Get event by id
       tags:
-      - ticketmaster-event
+      - events
   /events/user:
     get:
       description: Get event by user
-      operationId: get-event-by-user
+      operationId: https://pkg.go.dev/golang.org/x/tools/internal/typesinternal#InvalidIfaceAssignget-event-by-user
       produces:
       - application/json
       responses:

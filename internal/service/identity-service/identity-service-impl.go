@@ -66,7 +66,7 @@ func (i identityService) VerifyTokenAndGenerateCustomToken(ctx *gin.Context, idT
 		log.Println("Firebase User ID failed")
 	}
 
-	userInfo, err := i.identityRepo.GetUserInfoFromFirebaseToken(userID)
+	userInfo, err := i.identityRepo.GetUserInfoFromFirebaseToken(client, userID)
 	if err != nil {
 		log.Println("User info error:", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Bad Request: " + err.Error()})

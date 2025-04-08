@@ -122,8 +122,7 @@ func (r *IdentityRepository) VerifyAndGenerateToken(ctx *gin.Context, firebaseTo
 		log.Println("Firebase User ID ayrıştırılamadı")
 	}
 	/// Token'ı imzala ve string'e dönüştür
-
-	userInfo, err := r.GetUserInfoFromFirebaseToken(userID)
+	userInfo, err := r.GetUserInfoFromFirebaseToken(client, userID)
 	if err != nil {
 		log.Println("User info error:", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Bad Request: " + err.Error()})
@@ -191,19 +190,45 @@ func GenerateCustomToken(ctx *gin.Context, firebaseAuth *auth.Client, userInfo e
 	//}, nil
 }
 
-func (r *IdentityRepository) GetUserInfoFromFirebaseToken(firebaseUID string) (entity.User, error) {
+func (r *IdentityRepository) GetUserInfoFromFirebaseToken(firebaseAuth *auth.Client, firebaseUID string) (entity.User, error) {
 	var user entity.User
 
+	// Veritabanından kullanıcıyı kontrol et
 	err := r.db.Where("firebase_uid = ?", firebaseUID).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Println("User not found for Firebase UID:", firebaseUID)
-			return entity.User{}, fmt.Errorf("user not found")
+
+			// Firebase'den kullanıcı bilgilerini al
+			firebaseUser, err := firebaseAuth.GetUser(context.Background(), firebaseUID)
+			if err != nil {
+				log.Println("Failed to get user from Firebase:", err)
+				return entity.User{}, fmt.Errorf("could not fetch user from Firebase: %v", err)
+			}
+
+			// Firebase'den alınan bilgileri kullanarak yeni kullanıcı oluştur
+			user = entity.User{
+				FirebaseUID: firebaseUID,
+				Email:       firebaseUser.Email,
+				Username:    firebaseUser.DisplayName,
+				UserImage:   &firebaseUser.PhotoURL,
+			}
+
+			// Yeni kullanıcıyı veritabanına kaydet
+			createErr := r.db.Create(&user).Error
+			if createErr != nil {
+				log.Println("Failed to create user in database:", createErr)
+				return entity.User{}, createErr
+			}
+
+			return user, nil
 		}
+
 		log.Println("Database error:", err)
 		return entity.User{}, err
 	}
 
+	// Eğer kullanıcı zaten varsa, mevcut kullanıcıyı döndür
 	return user, nil
 }
 

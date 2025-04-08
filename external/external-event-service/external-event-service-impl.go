@@ -3,25 +3,20 @@ package external_event_service
 import (
 	"encoding/json"
 	"fmt"
-	"gilab.com/pragmaticreviews/golang-gin-poc/external/event/dto"
-	"gilab.com/pragmaticreviews/golang-gin-poc/external/mapper"
-	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 
+	"github.com/gin-gonic/gin"
+
 	"gilab.com/pragmaticreviews/golang-gin-poc/external/event/entity"
 	envService "gilab.com/pragmaticreviews/golang-gin-poc/internal/config"
-
-	internalEventService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/internal-event-service"
 )
 
 type externalEventService struct {
-	internalEventService internalEventService.InternalEventService
-	apiURL               string
+	apiURL string
 }
 
 func (e *externalEventService) FindById(id string) (entity.EventDetail, error) {
@@ -60,10 +55,10 @@ func (e *externalEventService) FindById(id string) (entity.EventDetail, error) {
 
 }
 
-func (e *externalEventService) FindByKeywordOrLocation(c *gin.Context, keyword string, location string, page int, size int) ([]dto.EventDTO, error) {
+func (e *externalEventService) FindByKeywordOrLocation(c *gin.Context, keyword string, location string, page int, size int) ([]entity.Event, error) {
 	baseURL, err := url.Parse(e.apiURL + "/events.json")
 	if err != nil {
-		return []dto.EventDTO{}, fmt.Errorf("invalid API URL: %w", err)
+		return []entity.Event{}, fmt.Errorf("invalid API URL: %w", err)
 	}
 
 	params := url.Values{}
@@ -92,64 +87,31 @@ func (e *externalEventService) FindByKeywordOrLocation(c *gin.Context, keyword s
 
 	resp, err := http.Get(baseURL.String())
 	if err != nil {
-		return []dto.EventDTO{}, fmt.Errorf("API request failed: %w", err)
+		return []entity.Event{}, fmt.Errorf("API request failed: %w", err)
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusOK {
-		return []dto.EventDTO{}, fmt.Errorf("unexpected API response: %d %s, body: %s", resp.StatusCode, http.StatusText(resp.StatusCode), string(body))
+		return []entity.Event{}, fmt.Errorf("unexpected API response: %d %s, body: %s", resp.StatusCode, http.StatusText(resp.StatusCode), string(body))
 	}
 
 	if err != nil {
-		return []dto.EventDTO{}, fmt.Errorf("failed to read API response: %w", err)
+		return []entity.Event{}, fmt.Errorf("failed to read API response: %w", err)
 	}
 
 	var response entity.Embedde
 	err = json.Unmarshal(body, &response)
 	if err != nil {
-		return []dto.EventDTO{}, fmt.Errorf("JSON parse error: %w", err)
+		return []entity.Event{}, fmt.Errorf("JSON parse error: %w", err)
 	}
 
-	if len(response.ApiResponse.Events) > 0 {
-		uid, exists := c.Get("user_id")
-		if !exists {
-			return []dto.EventDTO{}, fmt.Errorf("user id not found")
-		}
-		id, err := uuid.Parse(uid.(string))
-		if err != nil {
-			return []dto.EventDTO{}, fmt.Errorf("failed to parse user id: %w", err)
-		}
-
-		userEvents, err := e.internalEventService.GetEventIDsByUser(id)
-		if err != nil {
-			return nil, err
-		}
-
-		joinedEventMap := make(map[string]bool)
-		for _, eventID := range userEvents {
-			joinedEventMap[eventID] = true
-		}
-
-		var events []dto.EventDTO
-		for _, event := range response.ApiResponse.Events {
-			isJoined := joinedEventMap[event.ID]
-
-			participant, err := e.internalEventService.GetUsersAvatarByEventId(event.ID)
-			if err != nil {
-				return nil, err
-			}
-
-			eventDto, err := mapper.MapEventEntityToDTO(event, isJoined, participant)
-			if err != nil {
-				return nil, fmt.Errorf("failed to map event entity to dto: %w", err)
-			}
-
-			events = append(events, *eventDto)
-		}
-		return events, nil
+	responseData := response.ApiResponse.Events
+	if len(responseData) == 0 {
+		return []entity.Event{}, fmt.Errorf("no events found")
+	} else if len(responseData) > 0 {
+		fmt.Println("Found events: ", len(responseData))
 	}
-
-	return []dto.EventDTO{}, fmt.Errorf("no events found")
+	return responseData, nil
 }
 
 func (e *externalEventService) GetEventByIDs(eventIDs []string) ([]entity.EventDetail, error) {
@@ -166,13 +128,8 @@ func (e *externalEventService) GetEventByIDs(eventIDs []string) ([]entity.EventD
 	return events, nil
 }
 
-func (e *externalEventService) SetInternalService(service internalEventService.InternalEventService) {
-	e.internalEventService = service
-}
-
-func NewEventService(internalEventService internalEventService.InternalEventService) ExternalEventService {
+func NewEventService() ExternalEventService {
 	return &externalEventService{
-		apiURL:               "https://app.ticketmaster.com/discovery/v2",
-		internalEventService: internalEventService,
+		apiURL: "https://app.ticketmaster.com/discovery/v2",
 	}
 }
