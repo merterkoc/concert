@@ -16,4 +16,6 @@ type IdentityService interface {
 	VerifyTokenAndGenerateCustomToken(ctx *gin.Context, idToken string)
 	GetUserInfoById(c *gin.Context, id uuid.UUID)
 	VerifyCustomToken(ctx context.Context, firebaseAuth *auth.Client, customToken string, allowedRoles []enum.Role) (jwt.MapClaims, error)
+	PatchUserInterests(ctx *gin.Context, id uuid.UUID, patchUserInterestsRequest dto.PatchUserInterestsRequest)
+	GetAllInterests(ctx *gin.Context)
 }

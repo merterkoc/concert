@@ -296,6 +296,72 @@ const docTemplate = `{
                 }
             }
         },
+        "/identity/userinfo/interests": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identity"
+                ],
+                "summary": "Get all interests",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.GetAllInterestsResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
+                "description": "The operation to perform on the user's interests (either \"add\" or \"remove\") and the interest's ID.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identity"
+                ],
+                "parameters": [
+                    {
+                        "description": "PatchUserInterestsRequest",
+                        "name": "patchUserInterestsRequest",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PatchUserInterestsRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/identity/verify": {
             "post": {
                 "description": "Verify token",
@@ -352,11 +418,47 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "participant_avatars": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "start": {
                     "type": "string"
                 },
                 "ticket_url": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.GetAllInterestsResponse": {
+            "type": "object",
+            "properties": {
+                "interests": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.InterestType"
+                    }
+                }
+            }
+        },
+        "dto.PatchUserInterestsRequest": {
+            "type": "object",
+            "required": [
+                "interest_id",
+                "operation"
+            ],
+            "properties": {
+                "interest_id": {
+                    "type": "integer"
+                },
+                "operation": {
+                    "type": "string",
+                    "enum": [
+                        "add",
+                        "remove"
+                    ]
                 }
             }
         },
@@ -368,6 +470,12 @@ const docTemplate = `{
                 },
                 "email": {
                     "type": "string"
+                },
+                "interests": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.InterestType"
+                    }
                 },
                 "user_image": {
                     "type": "string"
@@ -505,6 +613,35 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.Event": {
+            "type": "object",
+            "properties": {
+                "_embedded": {
+                    "$ref": "#/definitions/entity.Embedded"
+                },
+                "dates": {
+                    "$ref": "#/definitions/entity.Dates"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "locale": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "priceRanges": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.PriceRange"
+                    }
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.EventDetail": {
             "type": "object",
             "properties": {
@@ -537,9 +674,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                },
-                "sales": {
-                    "$ref": "#/definitions/entity.Sales"
                 },
                 "test": {
                     "type": "boolean"
@@ -609,6 +743,17 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.InterestType": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
         "entity.Link": {
             "type": "object",
             "properties": {
@@ -637,28 +782,17 @@ const docTemplate = `{
                 }
             }
         },
-        "entity.PublicSale": {
+        "entity.PriceRange": {
             "type": "object",
             "properties": {
-                "endDateTime": {
+                "currency": {
                     "type": "string"
                 },
-                "startDateTime": {
-                    "type": "string"
+                "max": {
+                    "type": "number"
                 },
-                "startTBA": {
-                    "type": "boolean"
-                },
-                "startTBD": {
-                    "type": "boolean"
-                }
-            }
-        },
-        "entity.Sales": {
-            "type": "object",
-            "properties": {
-                "public": {
-                    "$ref": "#/definitions/entity.PublicSale"
+                "min": {
+                    "type": "number"
                 }
             }
         },
@@ -745,8 +879,20 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Event"
+                    }
+                },
                 "id": {
                     "type": "string"
+                },
+                "interests": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.InterestType"
+                    }
                 },
                 "role": {
                     "$ref": "#/definitions/enum.Role"

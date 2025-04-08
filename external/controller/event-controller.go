@@ -1,9 +1,9 @@
 package controller
 
 import (
-	service "gilab.com/pragmaticreviews/golang-gin-poc/external/event-service"
 	"gilab.com/pragmaticreviews/golang-gin-poc/external/event/dto"
-	entity "gilab.com/pragmaticreviews/golang-gin-poc/external/event/entity"
+	"gilab.com/pragmaticreviews/golang-gin-poc/external/event/entity"
+	externalEventService "gilab.com/pragmaticreviews/golang-gin-poc/external/external-event-service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -13,7 +13,7 @@ type EventController interface {
 }
 
 type eventController struct {
-	eventService service.EventService
+	externalEventService externalEventService.ExternalEventService
 }
 
 // FindById is a controller method
@@ -28,7 +28,7 @@ type eventController struct {
 // @Tags ticketmaster-event
 // @Security AccessToken[admin, user]
 func (c eventController) FindById(id string) (entity.EventDetail, error) {
-	return c.eventService.FindById(id)
+	return c.externalEventService.FindById(id)
 }
 
 // FindByKeywordOrLocation is a controller method
@@ -46,7 +46,7 @@ func (c eventController) FindById(id string) (entity.EventDetail, error) {
 // @Tags ticketmaster-event
 // @Security AccessToken[admin, user]
 func (c eventController) FindByKeywordOrLocation(ctx *gin.Context, GetEventRequest dto.GetEventRequest) ([]dto.EventDTO, error) {
-	return c.eventService.FindByKeywordOrLocation(
+	return c.externalEventService.FindByKeywordOrLocation(
 		ctx,
 		GetEventRequest.Keyword,
 		GetEventRequest.Location,
@@ -55,6 +55,6 @@ func (c eventController) FindByKeywordOrLocation(ctx *gin.Context, GetEventReque
 	)
 }
 
-func NewEventController(eventService service.EventService) EventController {
-	return eventController{eventService: eventService}
+func NewEventController(eventService externalEventService.ExternalEventService) EventController {
+	return eventController{externalEventService: eventService}
 }

@@ -13,6 +13,8 @@ type IdentityController interface {
 	CreateUser(ctx context.Context, createUserRequest dto.CreateUserRequest) (*entity.User, error)
 	VerifyToken(ctx *gin.Context, verifyTokenRequest dto.VerifyTokenRequest)
 	GetUserInfoById(ctx *gin.Context, id uuid.UUID)
+	PatchUserInterests(ctx *gin.Context, id uuid.UUID, patchUserInterestsRequest dto.PatchUserInterestsRequest)
+	GetAllInterests(ctx *gin.Context)
 }
 
 type identityController struct {
@@ -67,4 +69,32 @@ func (c identityController) VerifyToken(ctx *gin.Context, verifyTokenRequest dto
 // @Security AccessToken[admin, user]
 func (c identityController) GetUserInfoById(ctx *gin.Context, id uuid.UUID) {
 	c.identityService.GetUserInfoById(ctx, id)
+}
+
+// PatchUserInterests is a controller method
+// that patches user interests
+// @Summary
+// @Description  The operation to perform on the user's interests (either "add" or "remove") and the interest's ID.
+// @Tags identity
+// @Accept  json
+// @Produce  json
+// @Param patchUserInterestsRequest body dto.PatchUserInterestsRequest true "PatchUserInterestsRequest"
+// @Success 200
+// @Router /identity/userinfo/interests [patch]
+// @Security AccessToken[admin, user]
+func (c identityController) PatchUserInterests(ctx *gin.Context, id uuid.UUID, patchUserInterestsRequest dto.PatchUserInterestsRequest) {
+	c.identityService.PatchUserInterests(ctx, id, patchUserInterestsRequest)
+}
+
+// GetAllInterests is a controller method
+// that gets all interests
+// @Summary Get all interests
+// @Tags identity
+// @Accept  json
+// @Produce  json
+// @Success 200 {object} dto.GetAllInterestsResponse
+// @Router /identity/userinfo/interests [get]
+// @Security AccessToken[admin, user]
+func (c identityController) GetAllInterests(ctx *gin.Context) {
+	c.identityService.GetAllInterests(ctx)
 }

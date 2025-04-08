@@ -43,7 +43,7 @@ func (i identityService) VerifyTokenAndGenerateCustomToken(ctx *gin.Context, idT
 		log.Println("Firebase auth client error:", err)
 		return
 	}
-	_, err = VerifyFirebaseToken(ctx, client, idToken)
+	_, err = verifyFirebaseToken(ctx, client, idToken)
 	if err != nil {
 		log.Println("Firebase token verification error:", err)
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized: " + err.Error()})
@@ -73,7 +73,7 @@ func (i identityService) VerifyTokenAndGenerateCustomToken(ctx *gin.Context, idT
 		return
 	}
 
-	GenerateCustomToken(ctx, client, userInfo)
+	generateCustomToken(ctx, client, userInfo)
 }
 
 func (i identityService) GetUserInfoById(c *gin.Context, id uuid.UUID) {
@@ -83,14 +83,14 @@ func (i identityService) GetUserInfoById(c *gin.Context, id uuid.UUID) {
 		return
 	}
 
-	userdto, err := mapper.MapUserEntityToDto(userEntity)
+	userDTO, err := mapper.MapUserEntityToDto(userEntity)
 
 	if err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(200, userdto)
+	c.JSON(200, userDTO)
 
 }
 
@@ -104,7 +104,22 @@ func (i identityService) VerifyCustomToken(ctx context.Context, firebaseAuth *au
 	return claims, nil
 }
 
-func VerifyFirebaseToken(ctx context.Context, firebaseAuth *auth.Client, customToken string) (*auth.Token, error) {
+func (i identityService) PatchUserInterests(ctx *gin.Context, id uuid.UUID, patchUserInterestsRequest dto.PatchUserInterestsRequest) {
+	i.identityRepo.PatchUserInterests(ctx, id, patchUserInterestsRequest)
+}
+
+func (i identityService) GetAllInterests(ctx *gin.Context) {
+	interests := i.identityRepo.GetAllInterests(ctx)
+	if interests == nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting all interests"})
+		return
+	}
+	interestsDTO := dto.GetAllInterestsResponse{Interests: interests}
+	ctx.JSON(200, interestsDTO)
+	return
+}
+
+func verifyFirebaseToken(ctx context.Context, firebaseAuth *auth.Client, customToken string) (*auth.Token, error) {
 	token, err := firebaseAuth.VerifyIDToken(ctx, customToken)
 	if err != nil {
 		log.Println("Geçersiz token:", err)
@@ -113,6 +128,6 @@ func VerifyFirebaseToken(ctx context.Context, firebaseAuth *auth.Client, customT
 	return token, nil
 }
 
-func GenerateCustomToken(ctx *gin.Context, firebaseAuth *auth.Client, userInfo entity.User) {
+func generateCustomToken(ctx *gin.Context, firebaseAuth *auth.Client, userInfo entity.User) {
 	authorizationHelper.GenerateTokenHandler(ctx, userInfo.ID, userInfo.Role)
 }

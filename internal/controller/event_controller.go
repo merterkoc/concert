@@ -1,18 +1,18 @@
 package controller
 
 import (
-	eventService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/event-service"
+	internalEventService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/internal-event-service"
 	"github.com/google/uuid"
 )
 
 type EventController interface {
 	JoinEvent(ID uuid.UUID, eventID string) error
 	LeaveEvent(ID uuid.UUID, eventID string) error
-	GetEventByUser(ID uuid.UUID) ([]string, error)
+	GetEventByUser(ID uuid.UUID)
 }
 
 type eventController struct {
-	eventService eventService.EventService
+	eventService internalEventService.InternalEventService
 }
 
 // JoinEvent is a controller method
@@ -60,10 +60,10 @@ func (c eventController) LeaveEvent(ID uuid.UUID, eventID string) error {
 //
 // @Tags events
 // @Security AccessToken[admin, user]
-func (c eventController) GetEventByUser(ID uuid.UUID) ([]string, error) {
-	return c.eventService.GetEventByUser(ID)
+func (c eventController) GetEventByUser(ID uuid.UUID) {
+	c.eventService.GetEventIDsByUser(ID)
 }
 
-func NewEventController(eventService eventService.EventService) EventController {
+func NewEventController(eventService internalEventService.InternalEventService) EventController {
 	return eventController{eventService: eventService}
 }

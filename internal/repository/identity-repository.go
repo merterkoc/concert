@@ -136,7 +136,9 @@ func (r *IdentityRepository) VerifyAndGenerateToken(ctx *gin.Context, firebaseTo
 
 func (r *IdentityRepository) GetUserInfoById(id uuid.UUID) (entity.User, error) {
 	var user entity.User
-	err := r.db.Where("id = ?", id).First(&user).Error
+	err := r.db.
+		Preload("Interests").
+		Where("id = ?", id).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.Println("User not found for ID:", id)
@@ -207,41 +209,99 @@ func (r *IdentityRepository) GetUserInfoFromFirebaseToken(firebaseUID string) (e
 
 func (r *IdentityRepository) uploadImageFirebaseStorage(ctx context.Context, fileHeader *multipart.FileHeader) (string, error) {
 
-	// Dosyayı aç
 	file, err := fileHeader.Open()
 	if err != nil {
 		return "", fmt.Errorf("File not opened: %v", err)
 	}
 	defer file.Close()
 
-	// Firebase Storage bucket'ını belirt
 	bucketName := "gigbuddy-dev.firebasestorage.app"
 	bucket := r.storageClient.Bucket(bucketName)
 
-	// Dosya adını belirle (örneğin, benzersiz bir ad oluşturabilirsiniz)
 	objectName := fmt.Sprintf("uploads/user_images/%d-%s", time.Now().UnixNano(), fileHeader.Filename)
 	object := bucket.Object(objectName)
 
-	// Dosyayı yüklemek için bir Writer oluştur
 	writer := object.NewWriter(ctx)
 	writer.ContentType = fileHeader.Header.Get("Content-Type")
 
-	// Dosya içeriğini Firebase Storage'a yaz
 	if _, err := io.Copy(writer, file); err != nil {
 		return "", fmt.Errorf("Dosya Firebase Storage'a yazılamadı: %v", err)
 	}
 
-	// Writer'ı kapat
 	if err := writer.Close(); err != nil {
 		return "", fmt.Errorf("Writer kapatılamadı: %v", err)
 	}
 
-	// Dosyanın herkese açık olarak erişilebilir olmasını sağla
 	if err := object.ACL().Set(ctx, storage.AllUsers, storage.RoleReader); err != nil {
 		return "", fmt.Errorf("Dosya herkese açık yapılamadı: %v", err)
 	}
 
-	// Dosyanın herkese açık URL'sini oluştur
 	publicURL := fmt.Sprintf("https://storage.googleapis.com/%s/%s", bucketName, objectName)
 	return publicURL, nil
+}
+
+func (r *IdentityRepository) PatchUserInterests(ctx *gin.Context,
+	id uuid.UUID,
+	patchUserInterestsRequest dto.PatchUserInterestsRequest,
+) {
+	switch patchUserInterestsRequest.Operation {
+	case "add":
+		var userInterest entity.UserInterestType
+		err := r.db.Model(&entity.UserInterestType{}).Where("user_id = ? AND interest_type_id = ?", id,
+			patchUserInterestsRequest.InterestID).First(&userInterest).Error
+
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				newUserInterest := entity.UserInterestType{
+					UserID:         id,
+					InterestTypeID: patchUserInterestsRequest.InterestID,
+				}
+
+				if err := r.db.Create(&newUserInterest).Error; err != nil {
+					log.Println("Error creating new interest:", err)
+					ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating new interest, please check your interest type id"})
+					return
+				}
+
+				ctx.JSON(http.StatusOK, gin.H{"message": "Interest added successfully"})
+			} else {
+				log.Println("Database error:", err)
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+			}
+		} else {
+			ctx.JSON(http.StatusOK, gin.H{"message": "Interest already exists"})
+		}
+	case "remove":
+		var userInterest entity.UserInterestType
+		err := r.db.Model(&entity.UserInterestType{}).Where("user_id = ? AND interest_type_id = ?", id,
+			patchUserInterestsRequest.InterestID).First(&userInterest).Error
+
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				ctx.JSON(http.StatusOK, gin.H{"message": "Interest not found"})
+			} else {
+				log.Println("Database error:", err)
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+			}
+		} else {
+			if err := r.db.Delete(&userInterest).Error; err != nil {
+				log.Println("Error deleting interest:", err)
+				ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting interest"})
+				return
+			}
+
+			ctx.JSON(http.StatusOK, gin.H{"message": "Interest removed successfully"})
+		}
+	}
+}
+
+func (r *IdentityRepository) GetAllInterests(ctx *gin.Context) []entity.InterestType {
+	var interests []entity.InterestType
+	err := r.db.Find(&interests).Error
+	if err != nil {
+		log.Println("Error getting all interests:", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting all interests"})
+		return nil
+	}
+	return interests
 }

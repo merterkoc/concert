@@ -18,10 +18,34 @@ definitions:
         type: string
       name:
         type: string
+      participant_avatars:
+        items:
+          type: string
+        type: array
       start:
         type: string
       ticket_url:
         type: string
+    type: object
+  dto.GetAllInterestsResponse:
+    properties:
+      interests:
+        items:
+          $ref: '#/definitions/entity.InterestType'
+        type: array
+    type: object
+  dto.PatchUserInterestsRequest:
+    properties:
+      interest_id:
+        type: integer
+      operation:
+        enum:
+        - add
+        - remove
+        type: string
+    required:
+    - interest_id
+    - operation
     type: object
   dto.UserDto:
     properties:
@@ -29,6 +53,10 @@ definitions:
         type: string
       email:
         type: string
+      interests:
+        items:
+          $ref: '#/definitions/entity.InterestType'
+        type: array
       user_image:
         type: string
       username:
@@ -117,6 +145,25 @@ definitions:
           $ref: '#/definitions/entity.Venue'
         type: array
     type: object
+  entity.Event:
+    properties:
+      _embedded:
+        $ref: '#/definitions/entity.Embedded'
+      dates:
+        $ref: '#/definitions/entity.Dates'
+      id:
+        type: string
+      locale:
+        type: string
+      name:
+        type: string
+      priceRanges:
+        items:
+          $ref: '#/definitions/entity.PriceRange'
+        type: array
+      type:
+        type: string
+    type: object
   entity.EventDetail:
     properties:
       _embedded:
@@ -139,8 +186,6 @@ definitions:
         type: string
       name:
         type: string
-      sales:
-        $ref: '#/definitions/entity.Sales'
       test:
         type: boolean
       type:
@@ -185,6 +230,13 @@ definitions:
       width:
         type: integer
     type: object
+  entity.InterestType:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
   entity.Link:
     properties:
       href:
@@ -203,21 +255,14 @@ definitions:
           $ref: '#/definitions/entity.Link'
         type: array
     type: object
-  entity.PublicSale:
+  entity.PriceRange:
     properties:
-      endDateTime:
+      currency:
         type: string
-      startDateTime:
-        type: string
-      startTBA:
-        type: boolean
-      startTBD:
-        type: boolean
-    type: object
-  entity.Sales:
-    properties:
-      public:
-        $ref: '#/definitions/entity.PublicSale'
+      max:
+        type: number
+      min:
+        type: number
     type: object
   entity.Segment:
     properties:
@@ -272,8 +317,16 @@ definitions:
         type: string
       email:
         type: string
+      events:
+        items:
+          $ref: '#/definitions/entity.Event'
+        type: array
       id:
         type: string
+      interests:
+        items:
+          $ref: '#/definitions/entity.InterestType'
+        type: array
       role:
         $ref: '#/definitions/enum.Role'
       user_image:
@@ -486,6 +539,47 @@ paths:
         - admin
         - user
       summary: Get user info
+      tags:
+      - identity
+  /identity/userinfo/interests:
+    get:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.GetAllInterestsResponse'
+      security:
+      - AccessToken:
+        - admin
+        - user
+      summary: Get all interests
+      tags:
+      - identity
+    patch:
+      consumes:
+      - application/json
+      description: The operation to perform on the user's interests (either "add"
+        or "remove") and the interest's ID.
+      parameters:
+      - description: PatchUserInterestsRequest
+        in: body
+        name: patchUserInterestsRequest
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PatchUserInterestsRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - AccessToken:
+        - admin
+        - user
       tags:
       - identity
   /identity/verify:

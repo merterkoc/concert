@@ -1,4 +1,4 @@
-package eventservice
+package external_event_service
 
 import (
 	"encoding/json"
@@ -16,15 +16,15 @@ import (
 	"gilab.com/pragmaticreviews/golang-gin-poc/external/event/entity"
 	envService "gilab.com/pragmaticreviews/golang-gin-poc/internal/config"
 
-	internalEventService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/event-service"
+	internalEventService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/internal-event-service"
 )
 
-type eventService struct {
-	internalEventService internalEventService.EventService
+type externalEventService struct {
+	internalEventService internalEventService.InternalEventService
 	apiURL               string
 }
 
-func (e *eventService) FindById(id string) (entity.EventDetail, error) {
+func (e *externalEventService) FindById(id string) (entity.EventDetail, error) {
 	baseURL, err := url.Parse(e.apiURL + "/events/" + id + ".json")
 	params := url.Values{}
 	params.Add("apikey", envService.GetEnvServiceInstance().Env.TicketMasterAPIToken)
@@ -60,7 +60,7 @@ func (e *eventService) FindById(id string) (entity.EventDetail, error) {
 
 }
 
-func (e *eventService) FindByKeywordOrLocation(c *gin.Context, keyword string, location string, page int, size int) ([]dto.EventDTO, error) {
+func (e *externalEventService) FindByKeywordOrLocation(c *gin.Context, keyword string, location string, page int, size int) ([]dto.EventDTO, error) {
 	baseURL, err := url.Parse(e.apiURL + "/events.json")
 	if err != nil {
 		return []dto.EventDTO{}, fmt.Errorf("invalid API URL: %w", err)
@@ -120,7 +120,7 @@ func (e *eventService) FindByKeywordOrLocation(c *gin.Context, keyword string, l
 			return []dto.EventDTO{}, fmt.Errorf("failed to parse user id: %w", err)
 		}
 
-		userEvents, err := e.internalEventService.GetEventByUser(id)
+		userEvents, err := e.internalEventService.GetEventIDsByUser(id)
 		if err != nil {
 			return nil, err
 		}
@@ -152,8 +152,26 @@ func (e *eventService) FindByKeywordOrLocation(c *gin.Context, keyword string, l
 	return []dto.EventDTO{}, fmt.Errorf("no events found")
 }
 
-func NewEventService(internalEventService internalEventService.EventService) EventService {
-	return &eventService{
+func (e *externalEventService) GetEventByIDs(eventIDs []string) ([]entity.EventDetail, error) {
+	var events []entity.EventDetail
+
+	for _, id := range eventIDs {
+		event, err := e.FindById(id)
+		if err != nil {
+			return nil, fmt.Errorf("error finding event with ID %s: %w", id, err)
+		}
+		events = append(events, event)
+	}
+
+	return events, nil
+}
+
+func (e *externalEventService) SetInternalService(service internalEventService.InternalEventService) {
+	e.internalEventService = service
+}
+
+func NewEventService(internalEventService internalEventService.InternalEventService) ExternalEventService {
+	return &externalEventService{
 		apiURL:               "https://app.ticketmaster.com/discovery/v2",
 		internalEventService: internalEventService,
 	}

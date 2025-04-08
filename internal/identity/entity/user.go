@@ -17,6 +17,7 @@ type User struct {
 	CreatedAt   time.Time      `gorm:"autoCreateTime" json:"created_at"`
 	Role        enum.Role      `gorm:"type:enum('user', 'admin');not null;default:'user'" json:"role"`
 	UserImage   *string        `gorm:"type:varchar(255);" json:"user_image"`
+	Interests   []InterestType `gorm:"many2many:user_interest_types;" json:"interests"`
 	Events      []entity.Event `gorm:"many2many:user_events;constraint:OnDelete:CASCADE" json:"events" gorm:"-"`
 }
 

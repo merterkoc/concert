@@ -19,9 +19,9 @@ import (
 	externalController "gilab.com/pragmaticreviews/golang-gin-poc/external/controller"
 	internalController "gilab.com/pragmaticreviews/golang-gin-poc/internal/controller"
 
-	externalEventService "gilab.com/pragmaticreviews/golang-gin-poc/external/event-service"
+	externalEventService "gilab.com/pragmaticreviews/golang-gin-poc/external/external-event-service"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/repository"
-	eventservice "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/event-service"
+	internalEventService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/internal-event-service"
 	"github.com/gin-contrib/cors"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"
@@ -42,10 +42,12 @@ var (
 	storageClient   = boot.FirebaseStorageStart()
 	identityRepo    = repository.NewIdentityRepository(db, firebase, storageClient)
 	identityService = identityservice.NewIdentityService(identityRepo, firebase)
-	newEventService = eventservice.NewEventService(
+
+	newExternalEventService = externalEventService.NewEventService(newEventService)
+	newEventService         = internalEventService.NewEventService(
 		repository.NewEventRepository(db, identityRepo),
+		newExternalEventService,
 	)
-	newExternalEventService    = externalEventService.NewEventService(newEventService)
 	NewIdentityController      = internalController.NewIdentityController(identityService)
 	NewExternalEventController = externalController.NewEventController(newExternalEventService)
 	eventController            = internalController.NewEventController(newEventService)
@@ -65,6 +67,8 @@ var (
 // @scope.admin Grants read and write access to administrative information
 func main() {
 	// Start the server
+	newExternalEventService.SetInternalService(newEventService)
+
 	server := gin.Default()
 
 	// CORS Middleware
@@ -134,6 +138,30 @@ func main() {
 		}
 		NewIdentityController.GetUserInfoById(c, parsedUID)
 	})
+
+	server.PATCH("/v1/identity/userinfo/interests", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		uid, exists := c.Get("user_id")
+		var patchUserInterestsRequest dto.PatchUserInterestsRequest
+		if err := c.ShouldBindJSON(&patchUserInterestsRequest); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "UID not found"})
+			return
+		}
+		parsedUID, err := uuid.Parse(uid.(string))
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		NewIdentityController.PatchUserInterests(c, parsedUID, patchUserInterestsRequest)
+	})
+
+	server.GET("/v1/identity/userinfo/interests", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		NewIdentityController.GetAllInterests(c)
+	})
+
 	server.GET("/v1/events", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
 		var req eventDTO.GetEventRequest
 
@@ -215,13 +243,11 @@ func main() {
 		}
 
 		parsedUID, err := uuid.Parse(uid.(string))
-		event, err := eventController.GetEventByUser(parsedUID)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-
-		c.JSON(200, event)
+		eventController.GetEventByUser(parsedUID)
 	})
 	env := envService.GetEnvServiceInstance()
 	err = server.Run(":" + env.Env.AppPort)

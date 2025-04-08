@@ -44,7 +44,7 @@ func (r *EventRepository) LeaveEvent(userID, eventID string) error {
 	return nil
 }
 
-func (r *EventRepository) GetEventByUser(id string) ([]string, error) {
+func (r *EventRepository) GetEventIDsByUser(id string) ([]string, error) {
 	var eventListIDs []string
 	err := r.db.Model(&entity.UserEvents{}).
 		Where("user_id = ?", id).
