@@ -1,5 +1,25 @@
 basePath: /v1
 definitions:
+  dto.BuddyRequestDTO:
+    properties:
+      event_id:
+        type: string
+      id:
+        type: string
+      receiver_id:
+        type: string
+      sender_id:
+        type: string
+      status:
+        type: string
+    type: object
+  dto.CreateBuddyRequestDTO:
+    properties:
+      event_id:
+        type: string
+      receiver_id:
+        type: string
+    type: object
   dto.EventDTO:
     properties:
       distance:
@@ -49,6 +69,14 @@ definitions:
     type: object
   dto.UserDto:
     properties:
+      buddyships_user1:
+        items:
+          $ref: '#/definitions/entity.Buddyship'
+        type: array
+      buddyships_user2:
+        items:
+          $ref: '#/definitions/entity.Buddyship'
+        type: array
       created_at:
         type: string
       email:
@@ -92,6 +120,23 @@ definitions:
       upcomingEvents:
         $ref: '#/definitions/entity.UpcomingEvents'
       url:
+        type: string
+    type: object
+  entity.Buddyship:
+    properties:
+      event_id:
+        type: string
+      id:
+        type: string
+      matched_at:
+        type: string
+      user1:
+        $ref: '#/definitions/entity.User'
+      user1_id:
+        type: string
+      user2:
+        $ref: '#/definitions/entity.User'
+      user2_id:
         type: string
     type: object
   entity.City:
@@ -313,6 +358,14 @@ definitions:
     type: object
   entity.User:
     properties:
+      buddyships_user1:
+        items:
+          $ref: '#/definitions/entity.Buddyship'
+        type: array
+      buddyships_user2:
+        items:
+          $ref: '#/definitions/entity.Buddyship'
+        type: array
       created_at:
         type: string
       email:
@@ -362,6 +415,72 @@ info:
   title: GigBuddy API
   version: 1.0.0
 paths:
+  /buddy/requests:
+    get:
+      description: Retrieve a list of buddy requests for a user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return buddy requests successfully
+          schema:
+            items:
+              $ref: '#/definitions/dto.BuddyRequestDTO'
+            type: array
+      security:
+      - AccessToken:
+        - admin
+        - user
+      summary: Get Buddy Requests
+      tags:
+      - buddy
+    post:
+      consumes:
+      - application/json
+      description: Create a buddy request between users for a specific event
+      parameters:
+      - description: Buddy Request Information
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateBuddyRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - AccessToken:
+        - admin
+        - user
+      summary: Create Buddy Request
+      tags:
+      - buddy
+  /buddy/requests/{id}/accept:
+    post:
+      consumes:
+      - application/json
+      description: Accept a buddy request between users for a specific event. Only
+        the receiver can accept the request.
+      parameters:
+      - description: Buddy Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - AccessToken:
+        - admin
+        - user
+      summary: Accept Buddy Request
+      tags:
+      - buddy
   /events:
     get:
       description: Get event by keyword

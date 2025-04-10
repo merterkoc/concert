@@ -2,9 +2,9 @@ package identity_service
 
 import (
 	"firebase.google.com/go/auth"
-	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/dto"
-	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity"
-	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity/enum"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/model/dto"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/model/entity"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/model/entity/enum"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"

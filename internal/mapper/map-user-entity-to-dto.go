@@ -3,9 +3,8 @@ package mapper
 import (
 	"fmt"
 
-	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity"
-
-	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/dto"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/model/dto"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/model/entity"
 	"github.com/mitchellh/mapstructure"
 )
 

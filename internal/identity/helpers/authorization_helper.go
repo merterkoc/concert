@@ -6,7 +6,7 @@ import (
 	"time"
 
 	envService "gilab.com/pragmaticreviews/golang-gin-poc/internal/config"
-	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity/enum"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/model/entity/enum"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/google/uuid"

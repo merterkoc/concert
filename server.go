@@ -8,8 +8,10 @@ import (
 	"strings"
 
 	"firebase.google.com/go/auth"
-	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/dto"
-	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity/enum"
+
+	dto "gilab.com/pragmaticreviews/golang-gin-poc/internal/model/dto"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/model/entity/enum"
+	buddyservice "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/buddy-service"
 	identityservice "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/identity-service"
 	"golang.org/x/net/context"
 
@@ -41,13 +43,16 @@ var (
 	storageClient           = boot.FirebaseStorageStart()
 	identityRepo            = repository.NewIdentityRepository(db, firebase, storageClient)
 	eventRepo               = repository.NewEventRepository(db, identityRepo)
+	buddyRepo               = repository.NewBuddyRepository(db)
 	identityService         = identityservice.NewIdentityService(identityRepo, firebase)
+	buddyService            = buddyservice.NewBuddyService(db, buddyRepo)
 	newExternalEventService = externalEventService.NewEventService()
 	newInternalEventService = internalEventService.NewEventService(
 		*eventRepo,
 		newExternalEventService)
 	NewIdentityController = internalController.NewIdentityController(identityService)
 	eventController       = internalController.NewEventController(newInternalEventService)
+	buddyController       = internalController.NewBuddyController(buddyService)
 )
 
 // @title GigBuddy API
@@ -239,6 +244,75 @@ func main() {
 		}
 		eventController.GetEventByUser(parsedUID)
 	})
+
+	server.GET("/v1/buddy/requests", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		uid, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "UID not found"})
+			return
+		}
+		parsedUID, err := uuid.Parse(uid.(string))
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		res, err := buddyController.GetBuddyRequests(parsedUID)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+		}
+		c.JSON(200, res)
+	})
+
+	server.POST("/v1/buddy/requests/", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		var req dto.CreateBuddyRequestDTO
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+
+		uid, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "UID not found"})
+			return
+		}
+		parsedUID, err := uuid.Parse(uid.(string))
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		err = buddyController.CreateBuddyRequest(parsedUID, req)
+		if err != nil {
+			return
+		}
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+	})
+
+	server.POST("/v1/buddy/requests/:id/accept", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		uid, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "UID not found"})
+		}
+		parsedUID, err := uuid.Parse(uid.(string))
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		buddyRequestID := c.Param("id")
+		buddyRequestUUID, err := uuid.Parse(buddyRequestID)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		err = buddyController.AcceptBuddyRequest(parsedUID, buddyRequestUUID)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+	})
+
 	env := envService.GetEnvServiceInstance()
 	err = server.Run(":" + env.Env.AppPort)
 	if err != nil {

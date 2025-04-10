@@ -15,6 +15,111 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/buddy/requests": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
+                "description": "Retrieve a list of buddy requests for a user",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "buddy"
+                ],
+                "summary": "Get Buddy Requests",
+                "responses": {
+                    "200": {
+                        "description": "Return buddy requests successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.BuddyRequestDTO"
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
+                "description": "Create a buddy request between users for a specific event",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "buddy"
+                ],
+                "summary": "Create Buddy Request",
+                "parameters": [
+                    {
+                        "description": "Buddy Request Information",
+                        "name": "body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateBuddyRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/buddy/requests/{id}/accept": {
+            "post": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
+                "description": "Accept a buddy request between users for a specific event. Only the receiver can accept the request.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "buddy"
+                ],
+                "summary": "Accept Buddy Request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Buddy Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/events": {
             "get": {
                 "security": [
@@ -391,6 +496,37 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "dto.BuddyRequestDTO": {
+            "type": "object",
+            "properties": {
+                "event_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "receiver_id": {
+                    "type": "string"
+                },
+                "sender_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateBuddyRequestDTO": {
+            "type": "object",
+            "properties": {
+                "event_id": {
+                    "type": "string"
+                },
+                "receiver_id": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.EventDTO": {
             "type": "object",
             "properties": {
@@ -465,6 +601,18 @@ const docTemplate = `{
         "dto.UserDto": {
             "type": "object",
             "properties": {
+                "buddyships_user1": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Buddyship"
+                    }
+                },
+                "buddyships_user2": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Buddyship"
+                    }
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -530,6 +678,32 @@ const docTemplate = `{
                     "$ref": "#/definitions/entity.UpcomingEvents"
                 },
                 "url": {
+                    "type": "string"
+                }
+            }
+        },
+        "entity.Buddyship": {
+            "type": "object",
+            "properties": {
+                "event_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "matched_at": {
+                    "type": "string"
+                },
+                "user1": {
+                    "$ref": "#/definitions/entity.User"
+                },
+                "user1_id": {
+                    "type": "string"
+                },
+                "user2": {
+                    "$ref": "#/definitions/entity.User"
+                },
+                "user2_id": {
                     "type": "string"
                 }
             }
@@ -873,6 +1047,18 @@ const docTemplate = `{
         "entity.User": {
             "type": "object",
             "properties": {
+                "buddyships_user1": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Buddyship"
+                    }
+                },
+                "buddyships_user2": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Buddyship"
+                    }
+                },
                 "created_at": {
                     "type": "string"
                 },

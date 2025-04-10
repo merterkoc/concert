@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/dto"
-	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/model/dto"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/model/entity"
 	identityService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/identity-service"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"

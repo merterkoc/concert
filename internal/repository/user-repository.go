@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"gilab.com/pragmaticreviews/golang-gin-poc/internal/identity/entity"
+	"gilab.com/pragmaticreviews/golang-gin-poc/internal/model/entity"
 	"gorm.io/gorm"
 )
 
