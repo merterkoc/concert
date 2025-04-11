@@ -9,11 +9,10 @@ import (
 )
 
 type EventRepository struct {
-	db                 *gorm.DB
-	identityRepository *IdentityRepository
+	db *gorm.DB
 }
 
-func NewEventRepository(db *gorm.DB, identityRepository *IdentityRepository) *EventRepository {
+func NewEventRepository(db *gorm.DB) *EventRepository {
 	return &EventRepository{db: db}
 }
 
@@ -78,20 +77,23 @@ func (r *EventRepository) GetUsersAvatarByEventId(id string) ([]*string, error) 
 }
 
 func (r *EventRepository) GetUsersAvatarByEventIdAndUserId(id string, userID uuid.UUID) ([]*string, error) {
-	var userEvents []entity.UserEvents
+
+	var buddyship []entity.Buddyship
 
 	err := r.db.
-		Preload("User").
-		Where("event_id = ? AND user_id = ?", id, userID).
-		Find(&userEvents).Error
+		Preload("User1").
+		Preload("User2").
+		Where("event_id = ? AND (user1_id = ? OR user2_id = ?)", id, userID, userID).
+		Find(&buddyship).Error
 
 	if err != nil {
 		return []*string{}, fmt.Errorf("failed to get event list: %w", err)
 	}
 
 	var userImages []*string
-	for _, ue := range userEvents {
-		userImages = append(userImages, ue.User.UserImage)
+	for _, ue := range buddyship {
+		userImages = append(userImages, ue.User1.UserImage)
+		userImages = append(userImages, ue.User2.UserImage)
 	}
 
 	return userImages, nil

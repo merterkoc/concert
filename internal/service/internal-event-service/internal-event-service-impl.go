@@ -6,6 +6,7 @@ import (
 	externalEventService "gilab.com/pragmaticreviews/golang-gin-poc/external/external-event-service"
 	"gilab.com/pragmaticreviews/golang-gin-poc/external/mapper"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/repository"
+	identityService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/identity-service"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -13,6 +14,7 @@ import (
 type internalEventService struct {
 	eventRepo            repository.EventRepository
 	externalEventService externalEventService.ExternalEventService
+	identityService      identityService.IdentityService
 }
 
 // FindById implements InternalEventService.
@@ -113,7 +115,19 @@ func (e *internalEventService) GetUsersAvatarByEventId(id string) ([]*string, er
 }
 
 func (e *internalEventService) GetUsersAvatarByEventIdAndUserId(id string, userID uuid.UUID) ([]*string, error) {
-	return e.eventRepo.GetUsersAvatarByEventIdAndUserId(id, userID)
+	avatars, err := e.eventRepo.GetUsersAvatarByEventIdAndUserId(id, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	myUserImage := e.identityService.GetUserImageByID(userID)
+
+	// Eğer nil değilse ve zaten listede yoksa ekle
+	if myUserImage != nil && !containsImage(avatars, myUserImage) {
+		avatars = append(avatars, myUserImage)
+	}
+
+	return avatars, nil
 }
 
 func (e *internalEventService) GetEventDTOByUserID(c *gin.Context, ID uuid.UUID) {
@@ -133,13 +147,20 @@ func (e *internalEventService) GetEventDTOByUserID(c *gin.Context, ID uuid.UUID)
 	}
 	var eventDTOs []dto.EventDetailDTO
 
+	joinedEventMap := make(map[string]bool)
+	for _, eventID := range eventList {
+		joinedEventMap[eventID] = true
+	}
+
 	for _, event := range events {
+		isJoined := joinedEventMap[event.ID]
 		participant, err := e.GetUsersAvatarByEventIdAndUserId(event.ID, ID)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		eventDto, err := mapper.MapEventDetailEntityToEventDetailDto(event, false, participant)
+
+		eventDto, err := mapper.MapEventDetailEntityToEventDetailDto(event, isJoined, participant)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
@@ -152,9 +173,20 @@ func (e *internalEventService) GetEventDTOByUserID(c *gin.Context, ID uuid.UUID)
 func NewEventService(
 	eventRepo repository.EventRepository,
 	externalEventService externalEventService.ExternalEventService,
+	identityService identityService.IdentityService,
 ) InternalEventService {
 	return &internalEventService{
 		eventRepo:            eventRepo,
 		externalEventService: externalEventService,
+		identityService:      identityService,
 	}
+}
+
+func containsImage(images []*string, target *string) bool {
+	for _, img := range images {
+		if img != nil && target != nil && *img == *target {
+			return true
+		}
+	}
+	return false
 }

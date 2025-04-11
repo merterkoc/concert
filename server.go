@@ -42,14 +42,16 @@ var (
 	firebase                = boot.FirebaseStart()
 	storageClient           = boot.FirebaseStorageStart()
 	identityRepo            = repository.NewIdentityRepository(db, firebase, storageClient)
-	eventRepo               = repository.NewEventRepository(db, identityRepo)
+	eventRepo               = repository.NewEventRepository(db)
 	buddyRepo               = repository.NewBuddyRepository(db)
 	identityService         = identityservice.NewIdentityService(identityRepo, firebase)
 	buddyService            = buddyservice.NewBuddyService(db, buddyRepo)
 	newExternalEventService = externalEventService.NewEventService()
 	newInternalEventService = internalEventService.NewEventService(
 		*eventRepo,
-		newExternalEventService)
+		newExternalEventService,
+		identityService,
+	)
 	NewIdentityController = internalController.NewIdentityController(identityService)
 	eventController       = internalController.NewEventController(newInternalEventService)
 	buddyController       = internalController.NewBuddyController(buddyService)

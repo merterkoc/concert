@@ -330,3 +330,21 @@ func (r *IdentityRepository) GetAllInterests(ctx *gin.Context) []entity.Interest
 	}
 	return interests
 }
+
+func (r *IdentityRepository) GetUserImageByID(id uuid.UUID) *string {
+	var user entity.User
+	err := r.db.
+		Select("user_image").
+		Where("id = ?", id).
+		First(&user).Error
+	if err != nil {
+		log.Println("Error getting user image:", err)
+		return nil
+	}
+
+	if user.UserImage == nil {
+		return nil
+	}
+
+	return user.UserImage
+}

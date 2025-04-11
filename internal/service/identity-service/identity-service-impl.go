@@ -33,6 +33,9 @@ func NewIdentityService(
 	}
 }
 
+func (i identityService) GetUserImageByID(id uuid.UUID) *string {
+	return i.identityRepo.GetUserImageByID(id)
+}
 func (i identityService) CreateUser(ctx context.Context, createUserRequest dto.CreateUserRequest) (*entity.User, error) {
 	return i.identityRepo.CreateUser(ctx, createUserRequest)
 }

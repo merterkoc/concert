@@ -3,7 +3,6 @@ package entity
 import (
 	"time"
 
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -21,6 +20,5 @@ type Buddyship struct {
 // BeforeCreate hook to generate UUID before inserting into the database
 func (uc *Buddyship) BeforeCreate(tx *gorm.DB) (err error) {
 	uc.MatchedAt = time.Now()
-	uc.EventID = uuid.NewString()
 	return
 }
