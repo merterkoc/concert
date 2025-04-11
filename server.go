@@ -313,6 +313,52 @@ func main() {
 		}
 	})
 
+	server.POST("/v1/buddy/requests/:id/reject", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		uid, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "UID not found"})
+		}
+		parsedUID, err := uuid.Parse(uid.(string))
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		buddyRequestID := c.Param("id")
+		buddyRequestUUID, err := uuid.Parse(buddyRequestID)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		err = buddyController.RejectBuddyRequest(parsedUID, buddyRequestUUID)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+	})
+
+	server.POST("/v1/buddy/requests/:id/block", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		uid, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "UID not found"})
+		}
+		parsedUID, err := uuid.Parse(uid.(string))
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		buddyRequestID := c.Param("id")
+		buddyRequestUUID, err := uuid.Parse(buddyRequestID)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		err = buddyController.BlockBuddyRequest(parsedUID, buddyRequestUUID)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+	})
+
 	env := envService.GetEnvServiceInstance()
 	err = server.Run(":" + env.Env.AppPort)
 	if err != nil {

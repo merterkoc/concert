@@ -37,6 +37,36 @@ func (b *buddyController) AcceptBuddyRequest(uuid uuid.UUID, buddyRequestID uuid
 	return nil
 }
 
+// RejectBuddyRequest implements BuddyController.
+// @Summary Reject Buddy Request
+// @Description Reject Buddy Request
+// @ID reject-buddy-request
+// @Accept  json
+// @Produce json
+// @Param id path string true "Buddy Request ID"
+// @Success 200
+// @Router /buddy/requests/{id}/reject [post]
+// @Tags buddy
+// @Security AccessToken[admin, user]
+func (b *buddyController) RejectBuddyRequest(uuid uuid.UUID, buddyRequestID uuid.UUID) error {
+	err := b.buddyService.RejectBuddyRequest(uuid, buddyRequestID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// BlockBuddyRequest implements BuddyController.
+// @Summary Block Buddy Request
+// @Description Block Buddy Request
+// @ID block-buddy-request
+// @Accept  json
+// @Produce json
+// @Param id path string true "Buddy Request ID"
+// @Success 200 {object} entity.BuddyRequest "Return buddy request successfully"
+// @Router /buddy/requests/{id}/block [post]
+// @Tags buddy
+// @Security AccessToken[admin, user]
 func (b *buddyController) BlockBuddyRequest(uuid uuid.UUID, buddyRequestID uuid.UUID) error {
 	err := b.buddyService.BlockBuddyRequest(uuid, buddyRequestID)
 	if err != nil {
@@ -50,7 +80,7 @@ func (b *buddyController) BlockBuddyRequest(uuid uuid.UUID, buddyRequestID uuid.
 // @Description Create a buddy request between users for a specific event
 // @Accept  json
 // @Produce json
-// @Param body body dto.CreateBuddyRequestDTO true "Buddy Request Information"
+// @Param dto body dto.CreateBuddyRequestDTO true "Buddy Request Information"
 // @Success 200
 // @Router /buddy/requests [post]
 // @Tags buddy
@@ -71,14 +101,6 @@ func (b *buddyController) GetBuddyRequestsByEventID(eventID string) ([]dto.Buddy
 		return res, err
 	}
 	return res, nil
-}
-
-func (b *buddyController) RejectBuddyRequest(uuid uuid.UUID, buddyRequestID uuid.UUID) error {
-	err := b.buddyService.RejectBuddyRequest(uuid, buddyRequestID)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func NewBuddyController(buddyService buddyservice.BuddyServiceImpl) BuddyController {

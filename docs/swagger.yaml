@@ -69,14 +69,6 @@ definitions:
     type: object
   dto.UserDto:
     properties:
-      buddyships_user1:
-        items:
-          $ref: '#/definitions/entity.Buddyship'
-        type: array
-      buddyships_user2:
-        items:
-          $ref: '#/definitions/entity.Buddyship'
-        type: array
       created_at:
         type: string
       email:
@@ -121,6 +113,25 @@ definitions:
         $ref: '#/definitions/entity.UpcomingEvents'
       url:
         type: string
+    type: object
+  entity.BuddyRequest:
+    properties:
+      created_at:
+        type: string
+      event_id:
+        type: string
+      id:
+        type: string
+      receiver:
+        $ref: '#/definitions/entity.User'
+      receiver_id:
+        type: string
+      sender:
+        $ref: '#/definitions/entity.User'
+      sender_id:
+        type: string
+      status:
+        $ref: '#/definitions/entity.RequestStatus'
     type: object
   entity.Buddyship:
     properties:
@@ -309,6 +320,18 @@ definitions:
       min:
         type: number
     type: object
+  entity.RequestStatus:
+    enum:
+    - pending
+    - accepted
+    - rejected
+    - blocked
+    type: string
+    x-enum-varnames:
+    - Pending
+    - Accepted
+    - Rejected
+    - Blocked
   entity.Segment:
     properties:
       id:
@@ -441,7 +464,7 @@ paths:
       parameters:
       - description: Buddy Request Information
         in: body
-        name: body
+        name: dto
         required: true
         schema:
           $ref: '#/definitions/dto.CreateBuddyRequestDTO'
@@ -479,6 +502,56 @@ paths:
         - admin
         - user
       summary: Accept Buddy Request
+      tags:
+      - buddy
+  /buddy/requests/{id}/block:
+    post:
+      consumes:
+      - application/json
+      description: Block Buddy Request
+      operationId: block-buddy-request
+      parameters:
+      - description: Buddy Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Return buddy request successfully
+          schema:
+            $ref: '#/definitions/entity.BuddyRequest'
+      security:
+      - AccessToken:
+        - admin
+        - user
+      summary: Block Buddy Request
+      tags:
+      - buddy
+  /buddy/requests/{id}/reject:
+    post:
+      consumes:
+      - application/json
+      description: Reject Buddy Request
+      operationId: reject-buddy-request
+      parameters:
+      - description: Buddy Request ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      security:
+      - AccessToken:
+        - admin
+        - user
+      summary: Reject Buddy Request
       tags:
       - buddy
   /events:

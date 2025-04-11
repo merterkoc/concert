@@ -68,7 +68,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "description": "Buddy Request Information",
-                        "name": "body",
+                        "name": "dto",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -104,6 +104,85 @@ const docTemplate = `{
                     "buddy"
                 ],
                 "summary": "Accept Buddy Request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Buddy Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
+        "/buddy/requests/{id}/block": {
+            "post": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
+                "description": "Block Buddy Request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "buddy"
+                ],
+                "summary": "Block Buddy Request",
+                "operationId": "block-buddy-request",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Buddy Request ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Return buddy request successfully",
+                        "schema": {
+                            "$ref": "#/definitions/entity.BuddyRequest"
+                        }
+                    }
+                }
+            }
+        },
+        "/buddy/requests/{id}/reject": {
+            "post": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
+                "description": "Reject Buddy Request",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "buddy"
+                ],
+                "summary": "Reject Buddy Request",
+                "operationId": "reject-buddy-request",
                 "parameters": [
                     {
                         "type": "string",
@@ -601,18 +680,6 @@ const docTemplate = `{
         "dto.UserDto": {
             "type": "object",
             "properties": {
-                "buddyships_user1": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entity.Buddyship"
-                    }
-                },
-                "buddyships_user2": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entity.Buddyship"
-                    }
-                },
                 "created_at": {
                     "type": "string"
                 },
@@ -679,6 +746,35 @@ const docTemplate = `{
                 },
                 "url": {
                     "type": "string"
+                }
+            }
+        },
+        "entity.BuddyRequest": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "event_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "receiver": {
+                    "$ref": "#/definitions/entity.User"
+                },
+                "receiver_id": {
+                    "type": "string"
+                },
+                "sender": {
+                    "$ref": "#/definitions/entity.User"
+                },
+                "sender_id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/entity.RequestStatus"
                 }
             }
         },
@@ -969,6 +1065,21 @@ const docTemplate = `{
                     "type": "number"
                 }
             }
+        },
+        "entity.RequestStatus": {
+            "type": "string",
+            "enum": [
+                "pending",
+                "accepted",
+                "rejected",
+                "blocked"
+            ],
+            "x-enum-varnames": [
+                "Pending",
+                "Accepted",
+                "Rejected",
+                "Blocked"
+            ]
         },
         "entity.Segment": {
             "type": "object",
