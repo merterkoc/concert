@@ -164,6 +164,19 @@ func main() {
 		NewIdentityController.GetAllInterests(c)
 	})
 
+	server.GET("/v1/identity/profile/:id", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		id, err := uuid.Parse(c.Param("id"))
+		if err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		profile, err := NewIdentityController.GetUserPublicProfileByID(c, id)
+		if err != nil {
+			return
+		}
+		c.JSON(200, profile)
+	})
+
 	server.GET("/v1/events", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
 		var req eventDTO.GetEventRequest
 

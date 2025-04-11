@@ -23,6 +23,10 @@ type identityService struct {
 	firebase     *firebase.App
 }
 
+func (i identityService) SearchUsersByKeyword(ctx *gin.Context, keyword string, limit int, offset int) ([]dto.PublicUserProfileDTO, error) {
+	panic("implement me")
+}
+
 func NewIdentityService(
 	identityRepo *repository.IdentityRepository,
 	firebase *firebase.App,
@@ -31,6 +35,19 @@ func NewIdentityService(
 		identityRepo: *identityRepo,
 		firebase:     firebase,
 	}
+}
+
+func (i identityService) GetUserPublicProfileByID(ctx *gin.Context, id uuid.UUID) (*dto.PublicUserProfileDTO, error) {
+	userEntity, err := i.identityRepo.GetUserPublicProfileByID(id)
+	if err != nil {
+		return nil, err
+	}
+	publicUserProfileDto, err := mapper.MapUserEntityToPublicUserProfileDto(userEntity)
+	if err != nil {
+		return nil, err
+	}
+
+	return publicUserProfileDto, nil
 }
 
 func (i identityService) GetUserImageByID(id uuid.UUID) *string {

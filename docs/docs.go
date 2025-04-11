@@ -449,6 +449,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/identity/profile/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
+                "description": "Get user public profile by id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "identity"
+                ],
+                "summary": "Get user public profile by id",
+                "operationId": "get-user-public-profile-by-id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/dto.PublicUserProfileDTO"
+                        }
+                    }
+                }
+            }
+        },
         "/identity/userinfo": {
             "get": {
                 "security": [
@@ -674,6 +712,29 @@ const docTemplate = `{
                         "add",
                         "remove"
                     ]
+                }
+            }
+        },
+        "dto.PublicUserProfileDTO": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "interests": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.InterestType"
+                    }
+                },
+                "user_image": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
                 }
             }
         },

@@ -15,10 +15,37 @@ type IdentityController interface {
 	GetUserInfoById(ctx *gin.Context, id uuid.UUID)
 	PatchUserInterests(ctx *gin.Context, id uuid.UUID, patchUserInterestsRequest dto.PatchUserInterestsRequest)
 	GetAllInterests(ctx *gin.Context)
+	SearchUsersByKeyword(ctx *gin.Context, keyword string, limit int, offset int) ([]dto.PublicUserProfileDTO, error)
+	GetUserPublicProfileByID(ctx *gin.Context, id uuid.UUID) (*dto.PublicUserProfileDTO, error)
 }
 
 type identityController struct {
 	identityService identityService.IdentityService
+}
+
+func (c identityController) SearchUsersByKeyword(ctx *gin.Context, keyword string, limit int, offset int) ([]dto.PublicUserProfileDTO, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+// GetUserPublicProfileByID is a controller method
+// that gets a user public profile by id
+// @Summary Get user public profile by id
+// @Description Get user public profile by id
+// @ID get-user-public-profile-by-id
+// @Produce json
+// @Param id path string true "ID"
+// @Success 200 {object} dto.PublicUserProfileDTO
+// @Router /identity/profile/{id} [get]
+// @Tags identity
+// @Security AccessToken[admin, user]
+func (c identityController) GetUserPublicProfileByID(ctx *gin.Context, id uuid.UUID) (*dto.PublicUserProfileDTO, error) {
+	publicUserProfile, err := c.identityService.GetUserPublicProfileByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+
+	return publicUserProfile, nil
 }
 
 func NewIdentityController(identityService identityService.IdentityService) IdentityController {

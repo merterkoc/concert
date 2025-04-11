@@ -19,4 +19,6 @@ type IdentityService interface {
 	PatchUserInterests(ctx *gin.Context, id uuid.UUID, patchUserInterestsRequest dto.PatchUserInterestsRequest)
 	GetAllInterests(ctx *gin.Context)
 	GetUserImageByID(id uuid.UUID) *string
+	GetUserPublicProfileByID(ctx *gin.Context, id uuid.UUID) (*dto.PublicUserProfileDTO, error)
+	SearchUsersByKeyword(ctx *gin.Context, keyword string, limit int, offset int) ([]dto.PublicUserProfileDTO, error)
 }

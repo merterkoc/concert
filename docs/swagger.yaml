@@ -67,6 +67,21 @@ definitions:
     - interest_id
     - operation
     type: object
+  dto.PublicUserProfileDTO:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      interests:
+        items:
+          $ref: '#/definitions/entity.InterestType'
+        type: array
+      user_image:
+        type: string
+      username:
+        type: string
+    type: object
   dto.UserDto:
     properties:
       created_at:
@@ -712,6 +727,30 @@ paths:
           schema:
             $ref: '#/definitions/entity.User'
       summary: Create user
+      tags:
+      - identity
+  /identity/profile/{id}:
+    get:
+      description: Get user public profile by id
+      operationId: get-user-public-profile-by-id
+      parameters:
+      - description: ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.PublicUserProfileDTO'
+      security:
+      - AccessToken:
+        - admin
+        - user
+      summary: Get user public profile by id
       tags:
       - identity
   /identity/userinfo:

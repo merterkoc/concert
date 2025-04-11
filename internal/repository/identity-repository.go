@@ -35,6 +35,25 @@ func NewIdentityRepository(db *gorm.DB, firebase *firebase.App, storageClient *s
 	return &IdentityRepository{db: db, firebase: firebase, storageClient: storageClient}
 }
 
+func (r *IdentityRepository) GetUserPublicProfileByID(id uuid.UUID) (entity.User, error) {
+	var user entity.User
+	err := r.db.Where("id = ?", id).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Println("User not found for ID:", id)
+			return entity.User{}, fmt.Errorf("user not found")
+		}
+		log.Println("Database error:", err)
+		return entity.User{}, err
+	}
+	err = r.db.Model(&user).Association("Interests").Find(&user.Interests)
+	if err != nil {
+		log.Println("Database error:", err)
+		return entity.User{}, err
+	}
+	return user, nil
+}
+
 func (r *IdentityRepository) CreateUser(ctx context.Context, createUserRequest dto.CreateUserRequest) (*entity.User, error) {
 	var imageURL string
 	if createUserRequest.Image != nil {
