@@ -74,12 +74,25 @@ func (r *EventRepository) GetUsersAvatarByEventId(id string) ([]*string, error) 
 		userImages = append(userImages, ue.User.UserImage)
 	}
 
-	//var retrievedCourse Course
-	//db.Preload("Students").First(&retrievedCourse, course2.ID)
-	//fmt.Println("Kurs:", retrievedCourse.Name)
-	//for _, student := range retrievedCourse.Students {
-	//	fmt.Println("Öğrenci:", student.Name)
-	//}
+	return userImages, nil
+}
+
+func (r *EventRepository) GetUsersAvatarByEventIdAndUserId(id string, userID uuid.UUID) ([]*string, error) {
+	var userEvents []entity.UserEvents
+
+	err := r.db.
+		Preload("User").
+		Where("event_id = ? AND user_id = ?", id, userID).
+		Find(&userEvents).Error
+
+	if err != nil {
+		return []*string{}, fmt.Errorf("failed to get event list: %w", err)
+	}
+
+	var userImages []*string
+	for _, ue := range userEvents {
+		userImages = append(userImages, ue.User.UserImage)
+	}
 
 	return userImages, nil
 }

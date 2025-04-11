@@ -12,7 +12,7 @@ type EventController interface {
 	FindByKeywordOrLocation(c *gin.Context, GetEventRequest dto.GetEventRequest)
 	JoinEvent(ID uuid.UUID, eventID string) error
 	LeaveEvent(ID uuid.UUID, eventID string) error
-	GetEventByUser(ID uuid.UUID)
+	GetEventByUser(c *gin.Context, ID uuid.UUID)
 }
 
 type eventController struct {
@@ -103,8 +103,9 @@ func (c eventController) LeaveEvent(ID uuid.UUID, eventID string) error {
 //
 // @Tags events
 // @Security AccessToken[admin, user]
-func (c eventController) GetEventByUser(ID uuid.UUID) {
-	c.eventService.GetEventIDsByUser(ID)
+func (c eventController) GetEventByUser(gin *gin.Context, ID uuid.UUID) {
+	c.eventService.GetEventDTOByUserID(gin, ID)
+
 }
 
 func NewEventController(eventService internalEventService.InternalEventService) EventController {

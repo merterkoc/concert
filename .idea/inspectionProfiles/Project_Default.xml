@@ -6,6 +6,7 @@
       <functions>
         <function importPath="github.com/golang-jwt/jwt/v4" name="Parse" />
         <function importPath="github.com/mitchellh/mapstructure" name="NewDecoder" />
+        <function importPath="gilab.com/pragmaticreviews/golang-gin-poc/external/mapper" name="MapEventEntityToDTO" />
       </functions>
     </inspection_tool>
   </profile>

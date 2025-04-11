@@ -33,7 +33,3 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	}
 	return
 }
-
-func (u *User) LoadBuddyships(db *gorm.DB) *gorm.DB {
-	return db.Preload("BuddyshipsUser1").Preload("BuddyshipsUser2").Model(u)
-}

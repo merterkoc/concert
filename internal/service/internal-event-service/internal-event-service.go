@@ -11,7 +11,8 @@ type InternalEventService interface {
 	FindByKeywordOrLocation(gin *gin.Context, keyword string, location string, page int, size int)
 	JoinEvent(ID uuid.UUID, eventID string) error
 	LeaveEvent(ID uuid.UUID, eventID string) error
-	GetEventIDsByUser(ID uuid.UUID) ([]string, error)
+	GetEventDTOByUserID(gin *gin.Context, ID uuid.UUID)
 	GetUsersAvatarByEventId(id string) ([]*string, error)
+	GetUsersAvatarByEventIdAndUserId(id string, userID uuid.UUID) ([]*string, error)
 	GetEventsByEventIDs(ID uuid.UUID) ([]entity.EventDetail, error)
 }

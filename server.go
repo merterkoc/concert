@@ -242,7 +242,7 @@ func main() {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		eventController.GetEventByUser(parsedUID)
+		eventController.GetEventByUser(c, parsedUID)
 	})
 
 	server.GET("/v1/buddy/requests", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {

@@ -98,11 +98,55 @@ func (e *internalEventService) LeaveEvent(ID uuid.UUID, eventId string) error {
 }
 
 func (e *internalEventService) GetEventIDsByUser(ID uuid.UUID) ([]string, error) {
-	return e.eventRepo.GetEventIDsByUser(ID.String())
+	eventList, err := e.eventRepo.GetEventIDsByUser(ID.String())
+	if err != nil {
+		return nil, err
+	}
+	if len(eventList) == 0 {
+		return nil, nil
+	}
+	return eventList, nil
 }
 
 func (e *internalEventService) GetUsersAvatarByEventId(id string) ([]*string, error) {
 	return e.eventRepo.GetUsersAvatarByEventId(id)
+}
+
+func (e *internalEventService) GetUsersAvatarByEventIdAndUserId(id string, userID uuid.UUID) ([]*string, error) {
+	return e.eventRepo.GetUsersAvatarByEventIdAndUserId(id, userID)
+}
+
+func (e *internalEventService) GetEventDTOByUserID(c *gin.Context, ID uuid.UUID) {
+	eventList, err := e.eventRepo.GetEventIDsByUser(ID.String())
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	if len(eventList) == 0 {
+		c.JSON(200, gin.H{"data": []dto.EventDTO{}})
+		return
+	}
+	events, err := e.externalEventService.GetEventByIDs(eventList)
+	if err != nil {
+		c.JSON(500, gin.H{"error": err.Error()})
+		return
+	}
+	var eventDTOs []dto.EventDetailDTO
+
+	for _, event := range events {
+		participant, err := e.GetUsersAvatarByEventIdAndUserId(event.ID, ID)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		eventDto, err := mapper.MapEventDetailEntityToEventDetailDto(event, false, participant)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		eventDTOs = append(eventDTOs, *eventDto)
+	}
+	c.JSON(200, gin.H{"data": eventDTOs})
 }
 
 func NewEventService(
