@@ -283,6 +283,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/events/user/{userId}": {
+            "get": {
+                "security": [
+                    {
+                        "AccessToken": [
+                            "admin",
+                            "user"
+                        ]
+                    }
+                ],
+                "description": "Get event by user id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "events"
+                ],
+                "summary": "Get event by user id",
+                "operationId": "get-event-by-user-id",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User ID",
+                        "name": "userId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/entity.EventDetail"
+                        }
+                    }
+                }
+            }
+        },
         "/events/{eventId}/join": {
             "post": {
                 "security": [
@@ -381,7 +419,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Id",
+                        "description": "ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -616,17 +654,17 @@ const docTemplate = `{
         "dto.BuddyRequestDTO": {
             "type": "object",
             "properties": {
-                "event_id": {
-                    "type": "string"
+                "event": {
+                    "$ref": "#/definitions/gilab_com_pragmaticreviews_golang-gin-poc_internal_model_dto.EventDetailDTO"
                 },
                 "id": {
                     "type": "string"
                 },
-                "receiver_id": {
-                    "type": "string"
+                "receiver": {
+                    "$ref": "#/definitions/dto.UserDto"
                 },
-                "sender_id": {
-                    "type": "string"
+                "sender": {
+                    "$ref": "#/definitions/dto.UserDto"
                 },
                 "status": {
                     "type": "string"
@@ -647,6 +685,12 @@ const docTemplate = `{
         "dto.EventDTO": {
             "type": "object",
             "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
                 "distance": {
                     "type": "string"
                 },
@@ -665,6 +709,9 @@ const docTemplate = `{
                 "is_joined": {
                     "type": "boolean"
                 },
+                "locale": {
+                    "type": "string"
+                },
                 "location": {
                     "type": "string"
                 },
@@ -674,13 +721,16 @@ const docTemplate = `{
                 "participant_avatars": {
                     "type": "array",
                     "items": {
-                        "type": "string"
+                        "$ref": "#/definitions/gilab_com_pragmaticreviews_golang-gin-poc_external_event_dto.ParticipantsAvatar"
                     }
                 },
                 "start": {
                     "type": "string"
                 },
                 "ticket_url": {
+                    "type": "string"
+                },
+                "venue_name": {
                     "type": "string"
                 }
             }
@@ -720,6 +770,12 @@ const docTemplate = `{
             "properties": {
                 "created_at": {
                     "type": "string"
+                },
+                "events": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.UserEvents"
+                    }
                 },
                 "id": {
                     "type": "string"
@@ -1263,6 +1319,30 @@ const docTemplate = `{
                 }
             }
         },
+        "entity.UserEvents": {
+            "type": "object",
+            "properties": {
+                "createdAt": {
+                    "type": "string"
+                },
+                "eventID": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "user": {
+                    "$ref": "#/definitions/entity.User"
+                },
+                "user_id": {
+                    "description": "ForeignKey for User",
+                    "type": "string"
+                }
+            }
+        },
         "entity.Venue": {
             "type": "object",
             "properties": {
@@ -1293,6 +1373,78 @@ const docTemplate = `{
                 "User",
                 "Admin"
             ]
+        },
+        "gilab_com_pragmaticreviews_golang-gin-poc_external_event_dto.ParticipantsAvatar": {
+            "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "string"
+                },
+                "user_image": {
+                    "type": "string"
+                }
+            }
+        },
+        "gilab_com_pragmaticreviews_golang-gin-poc_internal_model_dto.EventDetailDTO": {
+            "type": "object",
+            "properties": {
+                "city": {
+                    "type": "string"
+                },
+                "country": {
+                    "type": "string"
+                },
+                "distance": {
+                    "type": "string"
+                },
+                "end": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "images": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Image"
+                    }
+                },
+                "is_joined": {
+                    "type": "boolean"
+                },
+                "locale": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "participant_avatars": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/gilab_com_pragmaticreviews_golang-gin-poc_internal_model_dto.ParticipantsAvatar"
+                    }
+                },
+                "start": {
+                    "type": "string"
+                },
+                "ticket_url": {
+                    "type": "string"
+                },
+                "venue_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "gilab_com_pragmaticreviews_golang-gin-poc_internal_model_dto.ParticipantsAvatar": {
+            "type": "object",
+            "properties": {
+                "user_id": {
+                    "type": "string"
+                },
+                "user_image": {
+                    "type": "string"
+                }
+            }
         }
     },
     "securityDefinitions": {

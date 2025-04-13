@@ -3,11 +3,12 @@ package controller
 import (
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/model/dto"
 	buddyservice "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/buddy-service"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 type BuddyController interface {
-	GetBuddyRequests(uid uuid.UUID) ([]dto.BuddyRequestDTO, error)
+	GetBuddyRequests(ctx *gin.Context, uid uuid.UUID) ([]dto.BuddyRequestDTO, error)
 	CreateBuddyRequest(uid uuid.UUID, dto dto.CreateBuddyRequestDTO) error
 	AcceptBuddyRequest(uuid uuid.UUID, buddyRequestID uuid.UUID) error
 	RejectBuddyRequest(uuid uuid.UUID, buddyRequestID uuid.UUID) error
@@ -117,8 +118,8 @@ func NewBuddyController(buddyService buddyservice.BuddyServiceImpl) BuddyControl
 // @Router /buddy/requests [get]
 // @Tags buddy
 // @Security AccessToken[admin, user]
-func (b *buddyController) GetBuddyRequests(uid uuid.UUID) ([]dto.BuddyRequestDTO, error) {
-	res, err := b.buddyService.GetBuddyRequests(uid)
+func (b *buddyController) GetBuddyRequests(ctx *gin.Context, uid uuid.UUID) ([]dto.BuddyRequestDTO, error) {
+	res, err := b.buddyService.GetBuddyRequests(ctx, uid)
 	if err != nil {
 		return res, err
 	}

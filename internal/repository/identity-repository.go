@@ -350,7 +350,7 @@ func (r *IdentityRepository) GetAllInterests(ctx *gin.Context) []entity.Interest
 	return interests
 }
 
-func (r *IdentityRepository) GetUserImageByID(id uuid.UUID) *string {
+func (r *IdentityRepository) GetUserImageByID(id uuid.UUID) *dto.ParticipantsAvatar {
 	var user entity.User
 	err := r.db.
 		Select("user_image").
@@ -365,5 +365,8 @@ func (r *IdentityRepository) GetUserImageByID(id uuid.UUID) *string {
 		return nil
 	}
 
-	return user.UserImage
+	return &dto.ParticipantsAvatar{
+		UserImage: user.UserImage,
+		ID:        user.ID,
+	}
 }

@@ -4,13 +4,17 @@ import (
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/mapper"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/model/dto"
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/repository"
+	internalEventService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/internal-event-service"
+	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/mitchellh/mapstructure"
 	"gorm.io/gorm"
 )
 
 type BuddyServiceImpl struct {
-	db              *gorm.DB
-	buddyRepository repository.BuddyRepository
+	db                   *gorm.DB
+	buddyRepository      repository.BuddyRepository
+	internalEventService internalEventService.InternalEventService
 }
 
 func (b *BuddyServiceImpl) AcceptBuddyRequest(uuid uuid.UUID, buddyRequestID uuid.UUID) error {
@@ -37,14 +41,21 @@ func (b *BuddyServiceImpl) CreateBuddyRequest(senderID uuid.UUID, receiverID uui
 	return nil
 }
 
-func (b *BuddyServiceImpl) GetBuddyRequests(uid uuid.UUID) ([]dto.BuddyRequestDTO, error) {
+func (b *BuddyServiceImpl) GetBuddyRequests(ctx *gin.Context, uid uuid.UUID) ([]dto.BuddyRequestDTO, error) {
 	buddyRequests, err := b.buddyRepository.GetBuddyRequests(uid)
 	if err != nil {
 		return nil, err
 	}
 	var buddyRequestDTOs []dto.BuddyRequestDTO
 	for _, buddyRequest := range buddyRequests {
-		buddyRequestDTO, err := mapper.MapBuddyRequestEntityToDto(buddyRequest)
+		eventDetailDto, err := b.internalEventService.FindById(uid, buddyRequest.EventID)
+		var eventDetail dto.EventDetailDTO
+		err = mapstructure.Decode(eventDetailDto, &eventDetail)
+		if err != nil {
+			return nil, err
+		}
+
+		buddyRequestDTO, err := mapper.MapBuddyRequestEntityToDto(buddyRequest, &eventDetail)
 		if err != nil {
 			return nil, err
 		}
@@ -61,7 +72,7 @@ func (b *BuddyServiceImpl) GetBuddyRequestsByEventID(eventID string) ([]dto.Budd
 	}
 	var buddyRequestDTOs []dto.BuddyRequestDTO
 	for _, buddyRequest := range buddyRequests {
-		buddyRequestDTO, err := mapper.MapBuddyRequestEntityToDto(buddyRequest)
+		buddyRequestDTO, err := mapper.MapBuddyRequestEntityToDto(buddyRequest, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -77,7 +88,7 @@ func (b *BuddyServiceImpl) GetBuddyRequestsByUserID(userID uuid.UUID) ([]dto.Bud
 	}
 	var buddyRequestDTOs []dto.BuddyRequestDTO
 	for _, buddyRequest := range buddyRequests {
-		buddyRequestDTO, err := mapper.MapBuddyRequestEntityToDto(buddyRequest)
+		buddyRequestDTO, err := mapper.MapBuddyRequestEntityToDto(buddyRequest, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -94,9 +105,12 @@ func (b *BuddyServiceImpl) RejectBuddyRequest(uuid uuid.UUID, buddyRequestID uui
 	return nil
 }
 
-func NewBuddyService(db *gorm.DB, buddyRepository repository.BuddyRepository) BuddyServiceImpl {
+func NewBuddyService(db *gorm.DB,
+	buddyRepository repository.BuddyRepository,
+	internalEventService internalEventService.InternalEventService) BuddyServiceImpl {
 	return BuddyServiceImpl{
-		db:              db,
-		buddyRepository: buddyRepository,
+		db:                   db,
+		buddyRepository:      buddyRepository,
+		internalEventService: internalEventService,
 	}
 }

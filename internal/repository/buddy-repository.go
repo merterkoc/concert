@@ -130,7 +130,7 @@ func (r *BuddyRepositoryImpl) RejectBuddyRequest(uuid uuid.UUID, buddyRequestID 
 
 func (r *BuddyRepositoryImpl) GetBuddyRequests(uid uuid.UUID) ([]entity.BuddyRequest, error) {
 	var buddyRequests []entity.BuddyRequest
-	err := r.db.Where("sender_id = ? OR receiver_id = ?", uid, uid).Find(&buddyRequests).Error
+	err := r.db.Preload("Sender").Preload("Receiver").Where("sender_id = ? OR receiver_id = ?", uid, uid).Find(&buddyRequests).Error
 	if err != nil {
 		return nil, err
 	}

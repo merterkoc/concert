@@ -8,7 +8,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-func MapEventEntityToDTO(event entity.Event, isJoined bool, participantAvatars []*string) (*dto.EventDTO, error) {
+func MapEventEntityToDTO(event entity.Event, isJoined bool, participantAvatars []dto.ParticipantsAvatar) (*dto.EventDTO, error) {
 	var eventDto dto.EventDTO
 
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
@@ -30,7 +30,10 @@ func MapEventEntityToDTO(event entity.Event, isJoined bool, participantAvatars [
 	for _, image := range event.Embedded.Attractions[0].Images {
 		imageURL = append(imageURL, image.URL)
 	}
-
+	eventDto.City = event.Embedded.Venues[0].City.Name
+	eventDto.Country = event.Embedded.Venues[0].Country.Name
+	eventDto.Locale = event.Locale
+	eventDto.VenueName = event.Embedded.Venues[0].Name
 	eventDto.Images = imageURL
 	eventDto.Start = event.Dates.Start.LocalDate
 	eventDto.URL = event.Embedded.Attractions[0].URL

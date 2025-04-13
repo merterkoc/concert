@@ -2,6 +2,7 @@ package repository
 
 import (
 	"fmt"
+	"gilab.com/pragmaticreviews/golang-gin-poc/external/event/dto"
 
 	"gilab.com/pragmaticreviews/golang-gin-poc/internal/model/entity"
 	"github.com/google/uuid"
@@ -55,7 +56,7 @@ func (r *EventRepository) GetEventIDsByUser(id string) ([]string, error) {
 	return eventListIDs, nil
 }
 
-func (r *EventRepository) GetUsersAvatarByEventId(id string) ([]*string, error) {
+func (r *EventRepository) GetUsersAvatarByEventId(id string) ([]dto.ParticipantsAvatar, error) {
 
 	var userEvents []entity.UserEvents
 
@@ -65,18 +66,21 @@ func (r *EventRepository) GetUsersAvatarByEventId(id string) ([]*string, error) 
 		Find(&userEvents).Error
 
 	if err != nil {
-		return []*string{}, fmt.Errorf("failed to get event list: %w", err)
+		return []dto.ParticipantsAvatar{}, fmt.Errorf("failed to get event list: %w", err)
 	}
 
-	var userImages []*string
+	var userImages []dto.ParticipantsAvatar
 	for _, ue := range userEvents {
-		userImages = append(userImages, ue.User.UserImage)
+		userImages = append(userImages, dto.ParticipantsAvatar{
+			ID:        ue.User.ID,
+			UserImage: ue.User.UserImage,
+		})
 	}
 
 	return userImages, nil
 }
 
-func (r *EventRepository) GetUsersAvatarByEventIdAndUserId(id string, userID uuid.UUID) ([]*string, error) {
+func (r *EventRepository) GetUsersAvatarByEventIdAndUserId(id string, userID uuid.UUID) ([]dto.ParticipantsAvatar, error) {
 
 	var buddyship []entity.Buddyship
 
@@ -87,14 +91,31 @@ func (r *EventRepository) GetUsersAvatarByEventIdAndUserId(id string, userID uui
 		Find(&buddyship).Error
 
 	if err != nil {
-		return []*string{}, fmt.Errorf("failed to get event list: %w", err)
+		return []dto.ParticipantsAvatar{}, fmt.Errorf("failed to get event list: %w", err)
 	}
 
-	var userImages []*string
+	var userImages []dto.ParticipantsAvatar
 	for _, ue := range buddyship {
-		userImages = append(userImages, ue.User1.UserImage)
-		userImages = append(userImages, ue.User2.UserImage)
+		userImages = append(userImages, dto.ParticipantsAvatar{
+			ID:        ue.User1.ID,
+			UserImage: ue.User1.UserImage,
+		})
+	}
+	for _, ue := range buddyship {
+		userImages = append(userImages, dto.ParticipantsAvatar{
+			ID:        ue.User2.ID,
+			UserImage: ue.User2.UserImage,
+		})
 	}
 
 	return userImages, nil
+}
+
+func (r *EventRepository) IsJoined(eventID string, uid uuid.UUID) (bool, error) {
+	var userEvents []entity.UserEvents
+	err := r.db.Where("event_id = ? AND user_id = ?", eventID, uid).Find(&userEvents).Error
+	if err != nil {
+		return false, err
+	}
+	return len(userEvents) > 0, nil
 }

@@ -5,14 +5,16 @@ import (
 	internalEventService "gilab.com/pragmaticreviews/golang-gin-poc/internal/service/internal-event-service"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"net/http"
 )
 
 type EventController interface {
-	FindById(c *gin.Context, id string)
+	FindById(cc *gin.Context, uuid uuid.UUID, id string)
 	FindByKeywordOrLocation(c *gin.Context, GetEventRequest dto.GetEventRequest)
 	JoinEvent(ID uuid.UUID, eventID string) error
 	LeaveEvent(ID uuid.UUID, eventID string) error
 	GetEventByUser(c *gin.Context, ID uuid.UUID)
+	GetEventByUserID(c *gin.Context, ID uuid.UUID)
 }
 
 type eventController struct {
@@ -25,13 +27,20 @@ type eventController struct {
 // @Description Get event by id
 // @ID get-event-by-id
 // @Produce json
-// @Param id path string true "Id"
+// @Param id path string true "ID"
 // @Success 200 {object} entity.EventDetail "Return event detail successfully"
 // @Router /events/{id} [get]
 // @Tags events
 // @Security AccessToken[admin, user]
-func (c eventController) FindById(ctx *gin.Context, id string) {
-	c.eventService.FindById(ctx, id)
+func (c eventController) FindById(cc *gin.Context, uuid uuid.UUID, id string) {
+	byId, err := c.eventService.FindById(uuid, id)
+	if err != nil {
+		return
+	}
+
+	cc.JSON(http.StatusOK, gin.H{
+		"data": byId,
+	})
 }
 
 // FindByKeywordOrLocation is a controller method
@@ -106,6 +115,21 @@ func (c eventController) LeaveEvent(ID uuid.UUID, eventID string) error {
 func (c eventController) GetEventByUser(gin *gin.Context, ID uuid.UUID) {
 	c.eventService.GetEventDTOByUserID(gin, ID)
 
+}
+
+// GetEventByUserID is a controller method
+// that returns an event by user id
+// @Summary Get event by user id
+// @Description Get event by user id
+// @ID get-event-by-user-id
+// @Produce json
+// @Param userId path string true "User ID"
+// @Success 200 {object} entity.EventDetail
+// @Router /events/user/{userId} [get]
+// @Tags events
+// @Security AccessToken[admin, user]
+func (c eventController) GetEventByUserID(gin *gin.Context, ID uuid.UUID) {
+	c.eventService.GetEventDTOByUserID(gin, ID)
 }
 
 func NewEventController(eventService internalEventService.InternalEventService) EventController {

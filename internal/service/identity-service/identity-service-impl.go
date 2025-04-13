@@ -50,7 +50,7 @@ func (i identityService) GetUserPublicProfileByID(ctx *gin.Context, id uuid.UUID
 	return publicUserProfileDto, nil
 }
 
-func (i identityService) GetUserImageByID(id uuid.UUID) *string {
+func (i identityService) GetUserImageByID(id uuid.UUID) *dto.ParticipantsAvatar {
 	return i.identityRepo.GetUserImageByID(id)
 }
 func (i identityService) CreateUser(ctx context.Context, createUserRequest dto.CreateUserRequest) (*entity.User, error) {

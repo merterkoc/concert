@@ -2,14 +2,14 @@ basePath: /v1
 definitions:
   dto.BuddyRequestDTO:
     properties:
-      event_id:
-        type: string
+      event:
+        $ref: '#/definitions/gilab_com_pragmaticreviews_golang-gin-poc_internal_model_dto.EventDetailDTO'
       id:
         type: string
-      receiver_id:
-        type: string
-      sender_id:
-        type: string
+      receiver:
+        $ref: '#/definitions/dto.UserDto'
+      sender:
+        $ref: '#/definitions/dto.UserDto'
       status:
         type: string
     type: object
@@ -22,6 +22,10 @@ definitions:
     type: object
   dto.EventDTO:
     properties:
+      city:
+        type: string
+      country:
+        type: string
       distance:
         type: string
       end:
@@ -34,17 +38,21 @@ definitions:
         type: array
       is_joined:
         type: boolean
+      locale:
+        type: string
       location:
         type: string
       name:
         type: string
       participant_avatars:
         items:
-          type: string
+          $ref: '#/definitions/gilab_com_pragmaticreviews_golang-gin-poc_external_event_dto.ParticipantsAvatar'
         type: array
       start:
         type: string
       ticket_url:
+        type: string
+      venue_name:
         type: string
     type: object
   dto.GetAllInterestsResponse:
@@ -71,6 +79,10 @@ definitions:
     properties:
       created_at:
         type: string
+      events:
+        items:
+          $ref: '#/definitions/entity.UserEvents'
+        type: array
       id:
         type: string
       interests:
@@ -425,6 +437,22 @@ definitions:
       username:
         type: string
     type: object
+  entity.UserEvents:
+    properties:
+      createdAt:
+        type: string
+      eventID:
+        type: string
+      id:
+        type: string
+      status:
+        type: string
+      user:
+        $ref: '#/definitions/entity.User'
+      user_id:
+        description: ForeignKey for User
+        type: string
+    type: object
   entity.Venue:
     properties:
       city:
@@ -446,6 +474,53 @@ definitions:
     x-enum-varnames:
     - User
     - Admin
+  gilab_com_pragmaticreviews_golang-gin-poc_external_event_dto.ParticipantsAvatar:
+    properties:
+      user_id:
+        type: string
+      user_image:
+        type: string
+    type: object
+  gilab_com_pragmaticreviews_golang-gin-poc_internal_model_dto.EventDetailDTO:
+    properties:
+      city:
+        type: string
+      country:
+        type: string
+      distance:
+        type: string
+      end:
+        type: string
+      id:
+        type: string
+      images:
+        items:
+          $ref: '#/definitions/entity.Image'
+        type: array
+      is_joined:
+        type: boolean
+      locale:
+        type: string
+      name:
+        type: string
+      participant_avatars:
+        items:
+          $ref: '#/definitions/gilab_com_pragmaticreviews_golang-gin-poc_internal_model_dto.ParticipantsAvatar'
+        type: array
+      start:
+        type: string
+      ticket_url:
+        type: string
+      venue_name:
+        type: string
+    type: object
+  gilab_com_pragmaticreviews_golang-gin-poc_internal_model_dto.ParticipantsAvatar:
+    properties:
+      user_id:
+        type: string
+      user_image:
+        type: string
+    type: object
 host: localhost:8080
 info:
   contact: {}
@@ -657,7 +732,7 @@ paths:
       description: Get event by id
       operationId: get-event-by-id
       parameters:
-      - description: Id
+      - description: ID
         in: path
         name: id
         required: true
@@ -692,6 +767,30 @@ paths:
         - admin
         - user
       summary: Get event by user
+      tags:
+      - events
+  /events/user/{userId}:
+    get:
+      description: Get event by user id
+      operationId: get-event-by-user-id
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/entity.EventDetail'
+      security:
+      - AccessToken:
+        - admin
+        - user
+      summary: Get event by user id
       tags:
       - events
   /identity/create:

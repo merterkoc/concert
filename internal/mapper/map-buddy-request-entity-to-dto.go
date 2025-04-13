@@ -8,13 +8,15 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-func MapBuddyRequestEntityToDto(user entity.BuddyRequest) (*dto.BuddyRequestDTO, error) {
+func MapBuddyRequestEntityToDto(user entity.BuddyRequest, detail *dto.EventDetailDTO) (*dto.BuddyRequestDTO, error) {
 	var buddyRequestDTO dto.BuddyRequestDTO
 
 	err := mapstructure.Decode(user, &buddyRequestDTO)
 	if err != nil {
 		return nil, fmt.Errorf("failed to map user entity to dto: %w", err)
 	}
+
+	buddyRequestDTO.Event = *detail
 
 	return &buddyRequestDTO, nil
 }

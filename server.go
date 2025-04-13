@@ -45,13 +45,13 @@ var (
 	eventRepo               = repository.NewEventRepository(db)
 	buddyRepo               = repository.NewBuddyRepository(db)
 	identityService         = identityservice.NewIdentityService(identityRepo, firebase)
-	buddyService            = buddyservice.NewBuddyService(db, buddyRepo)
 	newExternalEventService = externalEventService.NewEventService()
 	newInternalEventService = internalEventService.NewEventService(
 		*eventRepo,
 		newExternalEventService,
 		identityService,
 	)
+	buddyService          = buddyservice.NewBuddyService(db, buddyRepo, newInternalEventService)
 	NewIdentityController = internalController.NewIdentityController(identityService)
 	eventController       = internalController.NewEventController(newInternalEventService)
 	buddyController       = internalController.NewBuddyController(buddyService)
@@ -193,6 +193,22 @@ func main() {
 		eventController.FindByKeywordOrLocation(c, req)
 
 	})
+
+	server.GET("/v1/events/:eventId", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		eventID := c.Param("eventId")
+		uid, exists := c.Get("user_id")
+		if !exists {
+			c.JSON(401, gin.H{"error": "unauthorized"})
+			return
+		}
+		userID, err := uuid.Parse(uid.(string))
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		eventController.FindById(c, userID, eventID)
+	})
+
 	server.POST("/v1/events/:eventId/join", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
 		uid, exists := c.Get("user_id")
 		if !exists {
@@ -260,6 +276,20 @@ func main() {
 		eventController.GetEventByUser(c, parsedUID)
 	})
 
+	server.GET("/v1/events/user/:userId", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+		userId := c.Param("userId")
+		if userId == "" {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "User ID not found"})
+			return
+		}
+		parsedUserId, err := uuid.Parse(userId)
+		if err != nil {
+			c.JSON(500, gin.H{"error": err.Error()})
+			return
+		}
+		eventController.GetEventByUserID(c, parsedUserId)
+	})
+
 	server.GET("/v1/buddy/requests", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
 		uid, exists := c.Get("user_id")
 		if !exists {
@@ -271,14 +301,14 @@ func main() {
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		res, err := buddyController.GetBuddyRequests(parsedUID)
+		res, err := buddyController.GetBuddyRequests(c, parsedUID)
 		if err != nil {
 			c.JSON(500, gin.H{"error": err.Error()})
 		}
 		c.JSON(200, res)
 	})
 
-	server.POST("/v1/buddy/requests/", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
+	server.POST("/v1/buddy/requests", tokenMiddleware(authClient, []enum.Role{enum.Admin, enum.User}), func(c *gin.Context) {
 		var req dto.CreateBuddyRequestDTO
 		if err := c.ShouldBindJSON(&req); err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})

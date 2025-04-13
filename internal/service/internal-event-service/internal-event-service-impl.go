@@ -18,14 +18,28 @@ type internalEventService struct {
 }
 
 // FindById implements InternalEventService.
-func (e *internalEventService) FindById(c *gin.Context, id string) {
-	res, err := externalEventService.NewEventService().FindById(id)
+func (e *internalEventService) FindById(uuid uuid.UUID, id string) (dto.EventDetailDTO, error) {
+
+	eventDetail, err := externalEventService.NewEventService().FindById(id)
 	if err != nil {
-		c.JSON(500, gin.H{"error": err.Error()})
-		return
+		return dto.EventDetailDTO{}, err
 	}
-	c.JSON(200, gin.H{"data": res})
-	return
+	isJoined, err := e.eventRepo.IsJoined(eventDetail.ID, uuid)
+
+	if err != nil {
+		return dto.EventDetailDTO{}, err
+	}
+
+	participant, err := e.GetUsersAvatarByEventId(eventDetail.ID)
+	if err != nil {
+		return dto.EventDetailDTO{}, err
+	}
+	detailDto, err := mapper.MapEventDetailEntityToEventDetailDto(eventDetail, isJoined, participant)
+	if err != nil {
+		return dto.EventDetailDTO{}, err
+	}
+
+	return detailDto, nil
 }
 
 // FindByKeywordOrLocation implements InternalEventService.
@@ -110,21 +124,24 @@ func (e *internalEventService) GetEventIDsByUser(ID uuid.UUID) ([]string, error)
 	return eventList, nil
 }
 
-func (e *internalEventService) GetUsersAvatarByEventId(id string) ([]*string, error) {
+func (e *internalEventService) GetUsersAvatarByEventId(id string) ([]dto.ParticipantsAvatar, error) {
 	return e.eventRepo.GetUsersAvatarByEventId(id)
 }
 
-func (e *internalEventService) GetUsersAvatarByEventIdAndUserId(id string, userID uuid.UUID) ([]*string, error) {
+func (e *internalEventService) GetUsersAvatarByEventIdAndUserId(id string, userID uuid.UUID) ([]dto.ParticipantsAvatar, error) {
 	avatars, err := e.eventRepo.GetUsersAvatarByEventIdAndUserId(id, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	myUserImage := e.identityService.GetUserImageByID(userID)
+	avatar := &dto.ParticipantsAvatar{
+		UserImage: myUserImage.UserImage,
+		ID:        userID,
+	}
 
-	// Eğer nil değilse ve zaten listede yoksa ekle
-	if myUserImage != nil && !containsImage(avatars, myUserImage) {
-		avatars = append(avatars, myUserImage)
+	if !containsImage(avatars, avatar) {
+		avatars = append(avatars, *avatar)
 	}
 
 	return avatars, nil
@@ -165,7 +182,7 @@ func (e *internalEventService) GetEventDTOByUserID(c *gin.Context, ID uuid.UUID)
 			c.JSON(500, gin.H{"error": err.Error()})
 			return
 		}
-		eventDTOs = append(eventDTOs, *eventDto)
+		eventDTOs = append(eventDTOs, eventDto)
 	}
 	c.JSON(200, gin.H{"data": eventDTOs})
 }
@@ -182,9 +199,12 @@ func NewEventService(
 	}
 }
 
-func containsImage(images []*string, target *string) bool {
+func containsImage(images []dto.ParticipantsAvatar, target *dto.ParticipantsAvatar) bool {
+	if target == nil {
+		return false
+	}
 	for _, img := range images {
-		if img != nil && target != nil && *img == *target {
+		if img == *target {
 			return true
 		}
 	}

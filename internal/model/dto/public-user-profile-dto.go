@@ -12,4 +12,5 @@ type PublicUserProfileDTO struct {
 	CreatedAt time.Time             `json:"created_at"`
 	UserImage string                `json:"user_image"`
 	Interests []entity.InterestType `json:"interests"`
+	Events    []entity.UserEvents   `json:"events"`
 }

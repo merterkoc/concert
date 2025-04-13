@@ -8,7 +8,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-func MapEventDetailEntityToEventDetailDto(event entity.EventDetail, isJoined bool, participantAvatars []*string) (*dto.EventDetailDTO, error) {
+func MapEventDetailEntityToEventDetailDto(event entity.EventDetail, isJoined bool, participantAvatars []dto.ParticipantsAvatar) (dto.EventDetailDTO, error) {
 	var eventDto dto.EventDetailDTO
 
 	decoder, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
@@ -18,12 +18,12 @@ func MapEventDetailEntityToEventDetailDto(event entity.EventDetail, isJoined boo
 		ErrorUnused:      false,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create decoder: %w", err)
+		return dto.EventDetailDTO{}, fmt.Errorf("failed to create decoder: %w", err)
 	}
 
 	err = decoder.Decode(event)
 	if err != nil {
-		return nil, fmt.Errorf("failed to map event entity to dto: %w", err)
+		return dto.EventDetailDTO{}, fmt.Errorf("failed to map event entity to dto: %w", err)
 	}
 
 	var imageURL []string
@@ -31,11 +31,15 @@ func MapEventDetailEntityToEventDetailDto(event entity.EventDetail, isJoined boo
 		imageURL = append(imageURL, image.URL)
 	}
 
+	eventDto.VenueName = event.Embedded.Venues[0].Name
+	eventDto.City = event.Embedded.Venues[0].City.Name
+	eventDto.Country = event.Embedded.Venues[0].Country.Name
+	eventDto.Locale = event.Locale
 	eventDto.Images = event.Images
 	eventDto.Start = event.Dates.Start.LocalDate
 	eventDto.URL = event.Embedded.Attractions[0].URL
 	eventDto.IsJoined = isJoined
 	eventDto.ParticipantAvatars = participantAvatars
 
-	return &eventDto, nil
+	return eventDto, nil
 }
